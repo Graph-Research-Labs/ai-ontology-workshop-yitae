@@ -1,0 +1,620 @@
+# CBPA — Sample instance data (gist 14.1.0 aligned)
+# Workshop: AI-Assisted Ontology Engineering — KGUG Seoul 2026
+# Author: Dougal Watt, Graph Research Labs
+#
+# Synthetic data designed so every competency question in
+# cbpa-cqs.txt has at least one YES instance and at least one NO
+# instance. Identifiers are obviously synthetic (Cust_, ACC-, INST-,
+# PAY-, SAR-, KYC-, RA-, CS-, BAL-, TI-). The reference "today" for
+# the workshop is 2026-06-25; CQ6's last-30-days filter targets
+# Payments cleared on or after 2026-05-26.
+
+@prefix cbpa: <https://example.org/cbpa/> .
+@prefix gist: <https://w3id.org/semanticarts/ns/ontology/gist/> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+#####################################################################
+# Banks (4) — one Korean retail, one Seoul correspondent, one London
+# correspondent, one Tokyo. Bank K is the focal Bank for CQ1.
+#####################################################################
+
+cbpa:BankK a cbpa:Bank ;
+  skos:prefLabel "Bank K"@en ;
+  skos:definition "A South Korean retail and commercial bank with headquarters in Seoul. Focal bank for CQ1."@en .
+
+cbpa:BankS a cbpa:CorrespondentBank ;
+  skos:prefLabel "Bank S Correspondent"@en ;
+  skos:definition "A Seoul-based correspondent bank holding Nostro and Vostro arrangements for cross-border KRW settlement."@en .
+
+cbpa:BankL a cbpa:CorrespondentBank ;
+  skos:prefLabel "Bank L London"@en ;
+  skos:definition "A London-based correspondent bank used for GBP and USD cross-border settlement."@en .
+
+cbpa:BankT a cbpa:Bank ;
+  skos:prefLabel "Bank T Tokyo"@en ;
+  skos:definition "A Tokyo-based commercial bank used for JPY-denominated counterparties."@en .
+
+#####################################################################
+# Branches (3)
+#####################################################################
+
+cbpa:Branch_Gangnam a cbpa:Branch ;
+  skos:prefLabel "Bank K Gangnam Branch"@en ;
+  skos:definition "Bank K branch in the Gangnam district of Seoul."@en .
+
+cbpa:Branch_Yeouido a cbpa:Branch ;
+  skos:prefLabel "Bank K Yeouido Branch"@en ;
+  skos:definition "Bank K branch in the Yeouido financial district of Seoul."@en .
+
+cbpa:Branch_Marunouchi a cbpa:Branch ;
+  skos:prefLabel "Bank T Marunouchi Branch"@en ;
+  skos:definition "Bank T branch in the Marunouchi business district of Tokyo."@en .
+
+#####################################################################
+# Customers (6) — variety covers CQ2, CQ8, CQ9, CQ11.
+#####################################################################
+
+cbpa:Cust_Samsung a cbpa:Customer ;
+  skos:prefLabel "Samsung Trading Co."@en ;
+  skos:definition "A large Korean trading conglomerate. Low risk baseline."@en ;
+  cbpa:hasRiskAssessment cbpa:RA_Samsung_current .
+
+cbpa:Cust_Hyundai a cbpa:Customer ;
+  skos:prefLabel "Hyundai Logistics Inc."@en ;
+  skos:definition "A Korean logistics firm. Low risk baseline."@en ;
+  cbpa:hasRiskAssessment cbpa:RA_Hyundai_current .
+
+cbpa:Cust_LeeYongShik a cbpa:Customer ;
+  skos:prefLabel "Lee Yong-Shik Holdings"@en ;
+  skos:definition "An individual high-net-worth corporate entity flagged HighRisk. Has an open SAR — CQ8 YES case."@en ;
+  cbpa:hasRiskAssessment cbpa:RA_LeeYongShik_current .
+
+cbpa:Cust_DaewooSon a cbpa:Customer ;
+  skos:prefLabel "Daewoo & Son Partners"@en ;
+  skos:definition "A trading partnership rated HighRisk but with no open SAR — CQ8 NO case."@en ;
+  cbpa:hasRiskAssessment cbpa:RA_DaewooSon_current .
+
+cbpa:Cust_KimChulSoo a cbpa:Customer ;
+  skos:prefLabel "Kim Chul-Soo Capital"@en ;
+  skos:definition "An investment entity that underwent KYC review in Q2 2026 and was re-rated CriticalRisk. CQ9 YES case."@en ;
+  cbpa:hasRiskAssessment cbpa:RA_KimChulSoo_current .
+
+cbpa:Cust_ShellPLC a cbpa:Customer ;
+  skos:prefLabel "Shell Pacific PLC"@en ;
+  skos:definition "An international energy customer reviewed in Q2 2026 and rated LowRisk. CQ9 NO case (review yes, rating no)."@en ;
+  cbpa:hasRiskAssessment cbpa:RA_ShellPLC_current .
+
+#####################################################################
+# Accounts (8) — coverage for CQ1, CQ3, CQ5, CQ6, CQ11.
+# Bank K compliance posture: 2 FullyCompliant vs 3 NonCompliant
+# → CQ11 YES for BankK.
+#####################################################################
+
+cbpa:ACC-001 a cbpa:Account ;
+  skos:prefLabel "Samsung KRW current account at Bank K"@en ;
+  gist:isCategorizedBy cbpa:CurrentAccount ;
+  cbpa:heldBy cbpa:Cust_Samsung ;
+  cbpa:heldAt cbpa:BankK ;
+  cbpa:denominatedIn cbpa:KRW ;
+  cbpa:hasComplianceState cbpa:CS_ACC001_current .
+
+cbpa:ACC-002 a cbpa:Account ;
+  skos:prefLabel "Samsung USD savings account at Bank K"@en ;
+  gist:isCategorizedBy cbpa:SavingsAccount ;
+  cbpa:heldBy cbpa:Cust_Samsung ;
+  cbpa:heldAt cbpa:BankK ;
+  cbpa:denominatedIn cbpa:USD ;
+  cbpa:hasComplianceState cbpa:CS_ACC002_current .
+
+cbpa:ACC-003 a cbpa:Account ;
+  skos:prefLabel "Hyundai KRW current account at Bank K"@en ;
+  gist:isCategorizedBy cbpa:CurrentAccount ;
+  cbpa:heldBy cbpa:Cust_Hyundai ;
+  cbpa:heldAt cbpa:BankK ;
+  cbpa:denominatedIn cbpa:KRW ;
+  cbpa:hasComplianceState cbpa:CS_ACC003_current .
+
+cbpa:ACC-004 a cbpa:Account ;
+  skos:prefLabel "Lee Yong-Shik KRW current account at Bank S"@en ;
+  gist:isCategorizedBy cbpa:CurrentAccount ;
+  cbpa:heldBy cbpa:Cust_LeeYongShik ;
+  cbpa:heldAt cbpa:BankS ;
+  cbpa:denominatedIn cbpa:KRW ;
+  cbpa:hasComplianceState cbpa:CS_ACC004_current .
+
+cbpa:ACC-005 a cbpa:Account ;
+  skos:prefLabel "Daewoo & Son KRW current account at Bank K"@en ;
+  gist:isCategorizedBy cbpa:CurrentAccount ;
+  cbpa:heldBy cbpa:Cust_DaewooSon ;
+  cbpa:heldAt cbpa:BankK ;
+  cbpa:denominatedIn cbpa:KRW ;
+  cbpa:hasComplianceState cbpa:CS_ACC005_current .
+
+cbpa:ACC-006 a cbpa:Account ;
+  skos:prefLabel "Kim Chul-Soo USD savings account at Bank L"@en ;
+  gist:isCategorizedBy cbpa:SavingsAccount ;
+  cbpa:heldBy cbpa:Cust_KimChulSoo ;
+  cbpa:heldAt cbpa:BankL ;
+  cbpa:denominatedIn cbpa:USD ;
+  cbpa:hasComplianceState cbpa:CS_ACC006_current .
+
+cbpa:ACC-007 a cbpa:Account ;
+  skos:prefLabel "Shell Pacific JPY current account at Bank T"@en ;
+  gist:isCategorizedBy cbpa:CurrentAccount ;
+  cbpa:heldBy cbpa:Cust_ShellPLC ;
+  cbpa:heldAt cbpa:BankT ;
+  cbpa:denominatedIn cbpa:JPY ;
+  cbpa:hasComplianceState cbpa:CS_ACC007_current .
+
+cbpa:ACC-008 a cbpa:Account ;
+  skos:prefLabel "Lee Yong-Shik KRW escrow at Bank K"@en ;
+  gist:isCategorizedBy cbpa:EscrowAccount ;
+  cbpa:heldBy cbpa:Cust_LeeYongShik ;
+  cbpa:heldAt cbpa:BankK ;
+  cbpa:denominatedIn cbpa:KRW ;
+  cbpa:hasComplianceState cbpa:CS_ACC008_current .
+
+#####################################################################
+# Time intervals — referenced by Risk, Compliance, Payments, KYC.
+#####################################################################
+
+cbpa:TI_2026_Q2 a gist:TimeInterval ;
+  gist:startDateTime "2026-04-01T00:00:00Z"^^xsd:dateTime ;
+  gist:endDateTime   "2026-06-30T23:59:59Z"^^xsd:dateTime .
+
+cbpa:TI_2026_H1 a gist:TimeInterval ;
+  gist:startDateTime "2026-01-01T00:00:00Z"^^xsd:dateTime ;
+  gist:endDateTime   "2026-06-30T23:59:59Z"^^xsd:dateTime .
+
+cbpa:TI_PAY001 a gist:TimeInterval ;       # PAY-001 cleared 2026-05-15
+  gist:startDateTime "2026-05-15T09:00:00Z"^^xsd:dateTime ;
+  gist:endDateTime   "2026-05-15T09:01:00Z"^^xsd:dateTime .
+
+cbpa:TI_PAY002 a gist:TimeInterval ;       # PAY-002 cleared 2026-06-10 — within last 30 days
+  gist:startDateTime "2026-06-10T11:00:00Z"^^xsd:dateTime ;
+  gist:endDateTime   "2026-06-10T11:01:00Z"^^xsd:dateTime .
+
+cbpa:TI_PAY003 a gist:TimeInterval ;       # PAY-003 occurred 2026-04-20 (April — not in May for CQ10)
+  gist:startDateTime "2026-04-20T14:00:00Z"^^xsd:dateTime ;
+  gist:endDateTime   "2026-04-20T14:01:00Z"^^xsd:dateTime .
+
+cbpa:TI_PAY004 a gist:TimeInterval ;       # PAY-004 from ACC-001 cleared 2026-06-12 — last 30 days
+  gist:startDateTime "2026-06-12T10:00:00Z"^^xsd:dateTime ;
+  gist:endDateTime   "2026-06-12T10:01:00Z"^^xsd:dateTime .
+
+cbpa:TI_PAY005 a gist:TimeInterval ;       # PAY-005 (investigated, June)
+  gist:startDateTime "2026-06-05T13:00:00Z"^^xsd:dateTime ;
+  gist:endDateTime   "2026-06-05T13:01:00Z"^^xsd:dateTime .
+
+cbpa:TI_PAY006 a gist:TimeInterval ;       # PAY-006 from ACC-001, May 2026 SWIFT USD — CQ10 YES
+  gist:startDateTime "2026-05-22T15:00:00Z"^^xsd:dateTime ;
+  gist:endDateTime   "2026-05-22T15:01:00Z"^^xsd:dateTime .
+
+cbpa:TI_PAY007 a gist:TimeInterval ;       # PAY-007 to ACC-001, 2026-05-15 — OUTSIDE last 30 days
+  gist:startDateTime "2026-05-15T08:00:00Z"^^xsd:dateTime ;
+  gist:endDateTime   "2026-05-15T08:01:00Z"^^xsd:dateTime .
+
+cbpa:TI_PAY008 a gist:TimeInterval ;       # PAY-008 Pending — CQ7 YES
+  gist:startDateTime "2026-06-22T16:00:00Z"^^xsd:dateTime ;
+  gist:endDateTime   "2026-06-22T16:01:00Z"^^xsd:dateTime .
+
+cbpa:TI_KYC_KimQ2 a gist:TimeInterval ;
+  gist:startDateTime "2026-05-12T09:00:00Z"^^xsd:dateTime ;
+  gist:endDateTime   "2026-05-12T17:00:00Z"^^xsd:dateTime .
+
+cbpa:TI_KYC_ShellQ2 a gist:TimeInterval ;
+  gist:startDateTime "2026-06-08T10:00:00Z"^^xsd:dateTime ;
+  gist:endDateTime   "2026-06-08T16:00:00Z"^^xsd:dateTime .
+
+cbpa:TI_KYC_DaewooQ1 a gist:TimeInterval ;
+  gist:startDateTime "2026-02-15T10:00:00Z"^^xsd:dateTime ;
+  gist:endDateTime   "2026-02-15T16:00:00Z"^^xsd:dateTime .
+
+#####################################################################
+# RiskAssessments (6) — one current per customer.
+#####################################################################
+
+cbpa:RA_Samsung_current      a cbpa:RiskAssessment ;
+  gist:isCategorizedBy cbpa:LowRisk     ; gist:occursIn cbpa:TI_2026_H1 ;
+  skos:prefLabel "Samsung current risk (Low)"@en .
+
+cbpa:RA_Hyundai_current      a cbpa:RiskAssessment ;
+  gist:isCategorizedBy cbpa:LowRisk     ; gist:occursIn cbpa:TI_2026_H1 ;
+  skos:prefLabel "Hyundai current risk (Low)"@en .
+
+cbpa:RA_LeeYongShik_current  a cbpa:RiskAssessment ;
+  gist:isCategorizedBy cbpa:HighRisk    ; gist:occursIn cbpa:TI_2026_Q2 ;
+  skos:prefLabel "Lee Yong-Shik current risk (High)"@en .
+
+cbpa:RA_DaewooSon_current    a cbpa:RiskAssessment ;
+  gist:isCategorizedBy cbpa:HighRisk    ; gist:occursIn cbpa:TI_2026_Q2 ;
+  skos:prefLabel "Daewoo & Son current risk (High)"@en .
+
+cbpa:RA_KimChulSoo_current   a cbpa:RiskAssessment ;
+  gist:isCategorizedBy cbpa:CriticalRisk; gist:occursIn cbpa:TI_2026_Q2 ;
+  skos:prefLabel "Kim Chul-Soo current risk (Critical, post-KYC re-rate)"@en .
+
+cbpa:RA_ShellPLC_current     a cbpa:RiskAssessment ;
+  gist:isCategorizedBy cbpa:LowRisk     ; gist:occursIn cbpa:TI_2026_Q2 ;
+  skos:prefLabel "Shell Pacific current risk (Low, post-KYC confirmed)"@en .
+
+#####################################################################
+# ComplianceStates (8) — one current per account.
+#####################################################################
+
+cbpa:CS_ACC001_current a cbpa:ComplianceState ;
+  gist:isCategorizedBy cbpa:FullyCompliant ; gist:occursIn cbpa:TI_2026_H1 ;
+  skos:prefLabel "ACC-001 compliance (Fully)"@en .
+
+cbpa:CS_ACC002_current a cbpa:ComplianceState ;
+  gist:isCategorizedBy cbpa:FullyCompliant ; gist:occursIn cbpa:TI_2026_H1 ;
+  skos:prefLabel "ACC-002 compliance (Fully)"@en .
+
+cbpa:CS_ACC003_current a cbpa:ComplianceState ;
+  gist:isCategorizedBy cbpa:NonCompliant   ; gist:occursIn cbpa:TI_2026_H1 ;
+  skos:prefLabel "ACC-003 compliance (Non)"@en .
+
+cbpa:CS_ACC004_current a cbpa:ComplianceState ;
+  gist:isCategorizedBy cbpa:NonCompliant   ; gist:occursIn cbpa:TI_2026_H1 ;
+  skos:prefLabel "ACC-004 compliance (Non) — Bank S"@en .
+
+cbpa:CS_ACC005_current a cbpa:ComplianceState ;
+  gist:isCategorizedBy cbpa:NonCompliant   ; gist:occursIn cbpa:TI_2026_H1 ;
+  skos:prefLabel "ACC-005 compliance (Non)"@en .
+
+cbpa:CS_ACC006_current a cbpa:ComplianceState ;
+  gist:isCategorizedBy cbpa:FullyCompliant ; gist:occursIn cbpa:TI_2026_H1 ;
+  skos:prefLabel "ACC-006 compliance (Fully) — Bank L"@en .
+
+cbpa:CS_ACC007_current a cbpa:ComplianceState ;
+  gist:isCategorizedBy cbpa:FullyCompliant ; gist:occursIn cbpa:TI_2026_H1 ;
+  skos:prefLabel "ACC-007 compliance (Fully) — Bank T"@en .
+
+cbpa:CS_ACC008_current a cbpa:ComplianceState ;
+  gist:isCategorizedBy cbpa:NonCompliant   ; gist:occursIn cbpa:TI_2026_H1 ;
+  skos:prefLabel "ACC-008 compliance (Non)"@en .
+
+#####################################################################
+# BalanceSnapshots (2) — variety, not exhaustive.
+#####################################################################
+
+cbpa:BAL_ACC001_close a cbpa:BalanceSnapshot ;
+  gist:occursIn cbpa:TI_PAY007 ;
+  skos:prefLabel "ACC-001 end-of-day 2026-05-15"@en .
+
+cbpa:BAL_ACC002_close a cbpa:BalanceSnapshot ;
+  gist:occursIn cbpa:TI_PAY001 ;
+  skos:prefLabel "ACC-002 end-of-day 2026-05-15"@en .
+
+#####################################################################
+# Customer → Account back-references (for CQ5 holdsAccount and
+# Bank → Account back-references via holdsAccount).
+#####################################################################
+
+cbpa:Cust_Samsung      cbpa:holdsAccount cbpa:ACC-001 , cbpa:ACC-002 .
+cbpa:Cust_Hyundai      cbpa:holdsAccount cbpa:ACC-003 .
+cbpa:Cust_LeeYongShik  cbpa:holdsAccount cbpa:ACC-004 , cbpa:ACC-008 .
+cbpa:Cust_DaewooSon    cbpa:holdsAccount cbpa:ACC-005 .
+cbpa:Cust_KimChulSoo   cbpa:holdsAccount cbpa:ACC-006 .
+cbpa:Cust_ShellPLC     cbpa:holdsAccount cbpa:ACC-007 .
+
+cbpa:BankK cbpa:holdsAccount cbpa:ACC-001 , cbpa:ACC-002 , cbpa:ACC-003 , cbpa:ACC-005 , cbpa:ACC-008 .
+cbpa:BankS cbpa:holdsAccount cbpa:ACC-004 .
+cbpa:BankL cbpa:holdsAccount cbpa:ACC-006 .
+cbpa:BankT cbpa:holdsAccount cbpa:ACC-007 .
+
+#####################################################################
+# Magnitudes — for PaymentInstructions (CQ5 currency mismatch test).
+#####################################################################
+
+cbpa:MAG_INST001 a gist:Magnitude ;
+  cbpa:denominatedIn cbpa:USD ;
+  skos:prefLabel "USD 250,000 (INST-001)"@en .
+
+cbpa:MAG_INST002 a gist:Magnitude ;
+  cbpa:denominatedIn cbpa:KRW ;
+  skos:prefLabel "KRW 1,200,000,000 (INST-002)"@en .
+
+cbpa:MAG_INST003 a gist:Magnitude ;
+  cbpa:denominatedIn cbpa:USD ;
+  skos:prefLabel "USD 80,000 (INST-003)"@en .
+
+cbpa:MAG_INST004 a gist:Magnitude ;
+  cbpa:denominatedIn cbpa:KRW ;
+  skos:prefLabel "KRW 35,000,000 (INST-004)"@en .
+
+cbpa:MAG_INST005 a gist:Magnitude ;
+  cbpa:denominatedIn cbpa:JPY ;
+  skos:prefLabel "JPY 12,500,000 (INST-005)"@en .
+
+cbpa:MAG_INST006 a gist:Magnitude ;
+  cbpa:denominatedIn cbpa:USD ;
+  skos:prefLabel "USD 410,000 (INST-006)"@en .
+
+cbpa:MAG_INST007 a gist:Magnitude ;
+  cbpa:denominatedIn cbpa:KRW ;
+  skos:prefLabel "KRW 60,000,000 (INST-007)"@en .
+
+cbpa:MAG_INST008 a gist:Magnitude ;
+  cbpa:denominatedIn cbpa:KRW ;
+  skos:prefLabel "KRW 95,000,000 (INST-008)"@en .
+
+cbpa:MAG_INST009 a gist:Magnitude ;            # CQ5 YES — Hyundai authorises EUR but holds no EUR account.
+  cbpa:denominatedIn cbpa:EUR ;
+  skos:prefLabel "EUR 75,000 (INST-009) — currency mismatch test"@en .
+
+#####################################################################
+# Time windows requested by Instructions
+#####################################################################
+
+cbpa:TI_REQ_INST001 a gist:TimeInterval ;
+  gist:startDateTime "2026-05-14T00:00:00Z"^^xsd:dateTime ;
+  gist:endDateTime   "2026-05-16T23:59:59Z"^^xsd:dateTime .
+
+cbpa:TI_REQ_INST002 a gist:TimeInterval ;
+  gist:startDateTime "2026-06-09T00:00:00Z"^^xsd:dateTime ;
+  gist:endDateTime   "2026-06-11T23:59:59Z"^^xsd:dateTime .
+
+cbpa:TI_REQ_INST003 a gist:TimeInterval ;
+  gist:startDateTime "2026-04-19T00:00:00Z"^^xsd:dateTime ;
+  gist:endDateTime   "2026-04-21T23:59:59Z"^^xsd:dateTime .
+
+cbpa:TI_REQ_INST004 a gist:TimeInterval ;
+  gist:startDateTime "2026-06-11T00:00:00Z"^^xsd:dateTime ;
+  gist:endDateTime   "2026-06-13T23:59:59Z"^^xsd:dateTime .
+
+cbpa:TI_REQ_INST005 a gist:TimeInterval ;
+  gist:startDateTime "2026-06-04T00:00:00Z"^^xsd:dateTime ;
+  gist:endDateTime   "2026-06-06T23:59:59Z"^^xsd:dateTime .
+
+cbpa:TI_REQ_INST006 a gist:TimeInterval ;
+  gist:startDateTime "2026-05-21T00:00:00Z"^^xsd:dateTime ;
+  gist:endDateTime   "2026-05-23T23:59:59Z"^^xsd:dateTime .
+
+cbpa:TI_REQ_INST007 a gist:TimeInterval ;
+  gist:startDateTime "2026-05-14T00:00:00Z"^^xsd:dateTime ;
+  gist:endDateTime   "2026-05-16T23:59:59Z"^^xsd:dateTime .
+
+cbpa:TI_REQ_INST008 a gist:TimeInterval ;
+  gist:startDateTime "2026-06-21T00:00:00Z"^^xsd:dateTime ;
+  gist:endDateTime   "2026-06-23T23:59:59Z"^^xsd:dateTime .
+
+cbpa:TI_REQ_INST009 a gist:TimeInterval ;
+  gist:startDateTime "2026-06-23T00:00:00Z"^^xsd:dateTime ;
+  gist:endDateTime   "2026-06-25T23:59:59Z"^^xsd:dateTime .
+
+#####################################################################
+# Payments (8) + PaymentInstructions (9, one with no Payment yet for CQ5).
+#
+# CQ4 (SWIFT) YES: PAY-001, PAY-003, PAY-006, PAY-005 (all via SWIFT)
+# CQ4 NO:          PAY-002, PAY-004, PAY-007 (RTGS/CHIPS)
+# CQ6 last 30 days from 2026-06-25, involving ACC-001:
+#   YES: PAY-002 (2026-06-10 ACC-001 payee), PAY-004 (2026-06-12 ACC-001 payer)
+#   NO:  PAY-007 (2026-05-15 ACC-001 payee) — outside window
+# CQ7 (Authorised but never Cleared):
+#   YES: INST-005 (→ PAY-005 Investigated), INST-008 (→ PAY-008 Pending)
+#   NO:  INST-001..004, INST-006, INST-007 (→ Cleared payments)
+# CQ10 (SWIFT + USD + May 2026): PAY-001 (May 15, USD, SWIFT), PAY-006 (May 22, USD, SWIFT) → count 2
+# CQ12 (declaredPurpose appearing on instructions but no Cleared Payment):
+#   Only INST-005 declares FamilyRemittance and its Payment is Investigated → FamilyRemittance NEVER Cleared → YES
+#   InvestmentPurpose declared on INST-008 (Pending) → InvestmentPurpose NEVER Cleared → YES
+#   TradeSettlement appears on INST-001 (PAY-001 Cleared) → NO (filtered out)
+#####################################################################
+
+cbpa:PAY-001 a cbpa:Payment ;
+  skos:prefLabel "PAY-001 Samsung USD to Kim — SWIFT cleared May"@en ;
+  cbpa:payer cbpa:ACC-002 ;
+  cbpa:payee cbpa:ACC-006 ;
+  gist:occursIn cbpa:TI_PAY001 ;
+  cbpa:viaChannel cbpa:SWIFT ;
+  cbpa:denominatedIn cbpa:USD ;
+  cbpa:settlementStatus cbpa:Cleared ;
+  cbpa:implementsInstruction cbpa:INST-001 ;
+  cbpa:paymentReference "UETR-PAY001" .
+
+cbpa:PAY-002 a cbpa:Payment ;
+  skos:prefLabel "PAY-002 Hyundai KRW to Samsung ACC-001 — RTGS cleared June"@en ;
+  cbpa:payer cbpa:ACC-003 ;
+  cbpa:payee cbpa:ACC-001 ;
+  gist:occursIn cbpa:TI_PAY002 ;
+  cbpa:viaChannel cbpa:RTGS ;
+  cbpa:denominatedIn cbpa:KRW ;
+  cbpa:settlementStatus cbpa:Cleared ;
+  cbpa:implementsInstruction cbpa:INST-002 ;
+  cbpa:paymentReference "UETR-PAY002" .
+
+cbpa:PAY-003 a cbpa:Payment ;
+  skos:prefLabel "PAY-003 LeeYongShik USD to Samsung — SWIFT cleared April (SAR target)"@en ;
+  cbpa:payer cbpa:ACC-004 ;
+  cbpa:payee cbpa:ACC-002 ;
+  gist:occursIn cbpa:TI_PAY003 ;
+  cbpa:viaChannel cbpa:SWIFT ;
+  cbpa:denominatedIn cbpa:USD ;
+  cbpa:settlementStatus cbpa:Cleared ;
+  cbpa:implementsInstruction cbpa:INST-003 ;
+  cbpa:paymentReference "UETR-PAY003" .
+
+cbpa:PAY-004 a cbpa:Payment ;
+  skos:prefLabel "PAY-004 Samsung ACC-001 KRW to Daewoo — RTGS cleared June (last 30d)"@en ;
+  cbpa:payer cbpa:ACC-001 ;
+  cbpa:payee cbpa:ACC-005 ;
+  gist:occursIn cbpa:TI_PAY004 ;
+  cbpa:viaChannel cbpa:RTGS ;
+  cbpa:denominatedIn cbpa:KRW ;
+  cbpa:settlementStatus cbpa:Cleared ;
+  cbpa:implementsInstruction cbpa:INST-004 ;
+  cbpa:paymentReference "UETR-PAY004" .
+
+cbpa:PAY-005 a cbpa:SettlementLeg, cbpa:Payment ;   # dual-typed so plain SPARQL (no rdfs inference) sees both
+  skos:prefLabel "PAY-005 LeeYongShik JPY to Shell — SWIFT Investigated June (SAR target)"@en ;
+  cbpa:payer cbpa:ACC-008 ;
+  cbpa:payee cbpa:ACC-007 ;
+  gist:occursIn cbpa:TI_PAY005 ;
+  cbpa:viaChannel cbpa:SWIFT ;
+  cbpa:denominatedIn cbpa:JPY ;
+  cbpa:settlementStatus cbpa:Investigated ;
+  cbpa:implementsInstruction cbpa:INST-005 ;
+  cbpa:paymentReference "UETR-PAY005" .
+
+cbpa:PAY-006 a cbpa:Payment ;
+  skos:prefLabel "PAY-006 Samsung ACC-002 USD to Kim — SWIFT cleared May (CQ10 YES)"@en ;
+  cbpa:payer cbpa:ACC-002 ;
+  cbpa:payee cbpa:ACC-006 ;
+  gist:occursIn cbpa:TI_PAY006 ;
+  cbpa:viaChannel cbpa:SWIFT ;
+  cbpa:denominatedIn cbpa:USD ;
+  cbpa:settlementStatus cbpa:Cleared ;
+  cbpa:implementsInstruction cbpa:INST-006 ;
+  cbpa:paymentReference "UETR-PAY006" .
+
+cbpa:PAY-007 a cbpa:TestPayment, cbpa:Payment ; # dual-typed so plain SPARQL sees both
+  skos:prefLabel "PAY-007 Test payment to ACC-001 — CHIPS cleared May (outside CQ6 30d window)"@en ;
+  cbpa:payer cbpa:ACC-003 ;
+  cbpa:payee cbpa:ACC-001 ;
+  gist:occursIn cbpa:TI_PAY007 ;
+  cbpa:viaChannel cbpa:CHIPS ;
+  cbpa:denominatedIn cbpa:KRW ;
+  cbpa:settlementStatus cbpa:Cleared ;
+  cbpa:implementsInstruction cbpa:INST-007 ;
+  cbpa:paymentReference "UETR-PAY007" .
+
+cbpa:PAY-008 a cbpa:Payment ;
+  skos:prefLabel "PAY-008 Daewoo to LeeYongShik — Pending, never cleared (CQ7 YES)"@en ;
+  cbpa:payer cbpa:ACC-005 ;
+  cbpa:payee cbpa:ACC-008 ;
+  gist:occursIn cbpa:TI_PAY008 ;
+  cbpa:viaChannel cbpa:RTGS ;
+  cbpa:denominatedIn cbpa:KRW ;
+  cbpa:settlementStatus cbpa:Pending ;
+  cbpa:implementsInstruction cbpa:INST-008 ;
+  cbpa:paymentReference "UETR-PAY008" .
+
+#####################################################################
+# PaymentInstructions
+#####################################################################
+
+cbpa:INST-001 a cbpa:PaymentInstruction ;
+  skos:prefLabel "INST-001 — Samsung trade settlement USD via SWIFT"@en ;
+  cbpa:instructionFor             cbpa:PAY-001 ;
+  cbpa:instructsAmount            cbpa:MAG_INST001 ;
+  cbpa:requestedSettlementWindow  cbpa:TI_REQ_INST001 ;
+  cbpa:requestedChannel           cbpa:SWIFT ;
+  cbpa:declaredPurpose            cbpa:TradeSettlement ;
+  cbpa:authorisedBy               cbpa:Cust_Samsung ;
+  cbpa:instructionStatus          cbpa:Released .
+
+cbpa:INST-002 a cbpa:PaymentInstruction ;
+  skos:prefLabel "INST-002 — Hyundai loan repayment KRW via RTGS"@en ;
+  cbpa:instructionFor             cbpa:PAY-002 ;
+  cbpa:instructsAmount            cbpa:MAG_INST002 ;
+  cbpa:requestedSettlementWindow  cbpa:TI_REQ_INST002 ;
+  cbpa:requestedChannel           cbpa:RTGS ;
+  cbpa:declaredPurpose            cbpa:LoanRepayment ;
+  cbpa:authorisedBy               cbpa:Cust_Hyundai ;
+  cbpa:instructionStatus          cbpa:Released .
+
+cbpa:INST-003 a cbpa:PaymentInstruction ;
+  skos:prefLabel "INST-003 — Lee Yong-Shik investment USD via SWIFT (SAR target)"@en ;
+  cbpa:instructionFor             cbpa:PAY-003 ;
+  cbpa:instructsAmount            cbpa:MAG_INST003 ;
+  cbpa:requestedSettlementWindow  cbpa:TI_REQ_INST003 ;
+  cbpa:requestedChannel           cbpa:SWIFT ;
+  cbpa:declaredPurpose            cbpa:InvestmentPurpose ;
+  cbpa:authorisedBy               cbpa:Cust_LeeYongShik ;
+  cbpa:instructionStatus          cbpa:Released .
+
+cbpa:INST-004 a cbpa:PaymentInstruction ;
+  skos:prefLabel "INST-004 — Samsung salary KRW via RTGS"@en ;
+  cbpa:instructionFor             cbpa:PAY-004 ;
+  cbpa:instructsAmount            cbpa:MAG_INST004 ;
+  cbpa:requestedSettlementWindow  cbpa:TI_REQ_INST004 ;
+  cbpa:requestedChannel           cbpa:RTGS ;
+  cbpa:declaredPurpose            cbpa:SalaryPayment ;
+  cbpa:authorisedBy               cbpa:Cust_Samsung ;
+  cbpa:instructionStatus          cbpa:Released .
+
+cbpa:INST-005 a cbpa:PaymentInstruction ;
+  skos:prefLabel "INST-005 — Lee Yong-Shik family remittance JPY via SWIFT (CQ7 YES, CQ12 YES)"@en ;
+  cbpa:instructionFor             cbpa:PAY-005 ;
+  cbpa:instructsAmount            cbpa:MAG_INST005 ;
+  cbpa:requestedSettlementWindow  cbpa:TI_REQ_INST005 ;
+  cbpa:requestedChannel           cbpa:SWIFT ;
+  cbpa:declaredPurpose            cbpa:FamilyRemittance ;
+  cbpa:authorisedBy               cbpa:Cust_LeeYongShik ;
+  cbpa:instructionStatus          cbpa:Authorised .
+
+cbpa:INST-006 a cbpa:PaymentInstruction ;
+  skos:prefLabel "INST-006 — Samsung trade USD via SWIFT (May)"@en ;
+  cbpa:instructionFor             cbpa:PAY-006 ;
+  cbpa:instructsAmount            cbpa:MAG_INST006 ;
+  cbpa:requestedSettlementWindow  cbpa:TI_REQ_INST006 ;
+  cbpa:requestedChannel           cbpa:SWIFT ;
+  cbpa:declaredPurpose            cbpa:TradeSettlement ;
+  cbpa:authorisedBy               cbpa:Cust_Samsung ;
+  cbpa:instructionStatus          cbpa:Released .
+
+cbpa:INST-007 a cbpa:PaymentInstruction ;
+  skos:prefLabel "INST-007 — Hyundai test KRW via CHIPS"@en ;
+  cbpa:instructionFor             cbpa:PAY-007 ;
+  cbpa:instructsAmount            cbpa:MAG_INST007 ;
+  cbpa:requestedSettlementWindow  cbpa:TI_REQ_INST007 ;
+  cbpa:requestedChannel           cbpa:CHIPS ;
+  cbpa:declaredPurpose            cbpa:LoanRepayment ;
+  cbpa:authorisedBy               cbpa:Cust_Hyundai ;
+  cbpa:instructionStatus          cbpa:Released .
+
+cbpa:INST-008 a cbpa:PaymentInstruction ;
+  skos:prefLabel "INST-008 — Daewoo investment via RTGS — pending (CQ7 YES, CQ12 YES)"@en ;
+  cbpa:instructionFor             cbpa:PAY-008 ;
+  cbpa:instructsAmount            cbpa:MAG_INST008 ;
+  cbpa:requestedSettlementWindow  cbpa:TI_REQ_INST008 ;
+  cbpa:requestedChannel           cbpa:RTGS ;
+  cbpa:declaredPurpose            cbpa:InvestmentPurpose ;
+  cbpa:authorisedBy               cbpa:Cust_DaewooSon ;
+  cbpa:instructionStatus          cbpa:Authorised .
+
+cbpa:INST-009 a cbpa:PaymentInstruction ;
+  skos:prefLabel "INST-009 — Hyundai EUR remittance — currency mismatch (CQ5 YES)"@en ;
+  cbpa:instructionFor             cbpa:PAY-008 ;     # links to PAY-008 for SHACL conformance
+  cbpa:instructsAmount            cbpa:MAG_INST009 ;
+  cbpa:requestedSettlementWindow  cbpa:TI_REQ_INST009 ;
+  cbpa:requestedChannel           cbpa:SEPA ;
+  cbpa:declaredPurpose            cbpa:FamilyRemittance ;
+  cbpa:authorisedBy               cbpa:Cust_Hyundai ;
+  cbpa:instructionStatus          cbpa:Drafted .
+
+#####################################################################
+# KYC review events (3) — CQ9 coverage.
+#####################################################################
+
+cbpa:KYC-001 a cbpa:KYCReviewEvent ;
+  skos:prefLabel "Kim Chul-Soo Q2 2026 KYC review (re-rated Critical)"@en ;
+  cbpa:reviewsCustomer cbpa:Cust_KimChulSoo ;
+  gist:occursIn cbpa:TI_KYC_KimQ2 .
+
+cbpa:KYC-002 a cbpa:KYCReviewEvent ;
+  skos:prefLabel "Shell Pacific Q2 2026 KYC review (rating confirmed Low)"@en ;
+  cbpa:reviewsCustomer cbpa:Cust_ShellPLC ;
+  gist:occursIn cbpa:TI_KYC_ShellQ2 .
+
+cbpa:KYC-003 a cbpa:KYCReviewEvent ;
+  skos:prefLabel "Daewoo & Son Q1 2026 KYC review (outside CQ9 window)"@en ;
+  cbpa:reviewsCustomer cbpa:Cust_DaewooSon ;
+  gist:occursIn cbpa:TI_KYC_DaewooQ1 .
+
+#####################################################################
+# Suspicious Activity Reports (2) — CQ8 coverage.
+#####################################################################
+
+cbpa:SAR-001 a cbpa:SuspiciousActivityReport ;
+  skos:prefLabel "SAR-001 against Lee Yong-Shik payment PAY-003"@en ;
+  skos:definition "Filed by Bank K compliance officer on 2026-04-22 to KoFIU regarding PAY-003."@en ;
+  cbpa:reports cbpa:PAY-003 .
+
+cbpa:SAR-002 a cbpa:SuspiciousActivityReport ;
+  skos:prefLabel "SAR-002 against Lee Yong-Shik payment PAY-005"@en ;
+  skos:definition "Filed by Bank K compliance officer on 2026-06-06 to KoFIU regarding PAY-005."@en ;
+  cbpa:reports cbpa:PAY-005 .

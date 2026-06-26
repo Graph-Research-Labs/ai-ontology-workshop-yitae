@@ -1,0 +1,286 @@
+# CBPA — Cross-Border Payments and AML Ontology (FLAWED demo version)
+# Workshop: AI-Assisted Ontology Engineering — KGUG Seoul, 2 July 2026
+# Author: Dougal Watt, Graph Research Labs
+#
+# This is the FLAWED version used during the workshop demonstration.
+# Aligned to gist 14.1.0.
+#
+# Anti-patterns baked in:
+#   1. Deep hierarchy explosion — payment channels modelled as
+#      subclasses of Payment instead of as gist:Category instances,
+#      then individual payments modelled as subclasses of those
+#      subclasses. Triggers GIST-003 (instance-as-subclass) and
+#      GIST-008 (type-as-subclass intermediate layer).
+#   2. Event vs Task confusion — Payment and PaymentInstruction
+#      collapsed into a single Payment class with both planning-time
+#      and occurrence-time properties attached to the same class.
+#      Triggers GIST-002.
+#   3. Parallel property invention — invents :containsComponent (here
+#      :containsAccount) instead of using the gist:isDirectPartOf
+#      partonomy pattern. Triggers GIST-001.
+#   4. Orphan domain classes — Branch and Customer sit at the root of
+#      the asserted hierarchy with no upper-ontology parent. With an
+#      upper ontology in scope, every domain class should ultimately
+#      subclass something in the upper ontology. New base classes
+#      fragment the taxonomy and defeat cross-ontology alignment.
+#      Triggers GIST-005.
+#
+# Minor flaws:
+#   - ComplianceState lacks any magnitude or category constraint.
+#   - RiskAssessment is misapplied as a gist:Category subclass rather
+#     than a gist:Specification. Triggers GIST-004.
+#   - rdfs:domain and rdfs:range are used on properties — the LLM
+#     defaulted to the global-constraint pattern when team convention
+#     is property restrictions on the bearing class.
+#   - Required purposes are stored as raw strings rather than as
+#     references to PurposeType instances.
+#   - Classes missing skos:prefLabel / skos:definition. Triggers
+#     STRUCT-002.
+#
+# Licence: CC-BY-SA-4.0.
+
+@prefix cbpa: <https://example.org/cbpa/> .
+@prefix gist: <https://w3id.org/semanticarts/ns/ontology/gist/> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix dct:  <http://purl.org/dc/terms/> .
+
+#####################################################################
+# Ontology header
+#####################################################################
+
+<https://example.org/cbpa> a owl:Ontology ;
+  owl:versionIRI <https://example.org/cbpa/0.2.0-flawed> ;
+  dct:title "Cross-Border Payments and AML Ontology (CBPA) — flawed demo version" ;
+  dct:description "FLAWED. Contains four deliberate gist anti-patterns plus minor flaws including misuse of rdfs:domain/range and missing SKOS annotations. Used in the KGUG Seoul 2026 workshop." ;
+  dct:creator "Dougal Watt" ;
+  dct:license <https://creativecommons.org/licenses/by-sa/4.0/> ;
+  owl:imports <https://w3id.org/semanticarts/ontology/gistCore> .
+
+#####################################################################
+# ANTI-PATTERN 1 — Deep hierarchy explosion.
+# Payment channels modelled as subclasses of Payment (GIST-008
+# territory: <channel>_Payment), and individual payments modelled as
+# subclasses of those (GIST-003 territory: <channel>_Payment_<txnId>).
+#####################################################################
+
+cbpa:Payment a owl:Class ;
+  rdfs:subClassOf gist:Event ;
+  rdfs:subClassOf gist:Task ;
+  rdfs:label "Payment (collapsed plan and occurrence)" .
+
+cbpa:MT103_Payment a owl:Class ;
+  rdfs:subClassOf cbpa:Payment ;
+  rdfs:label "SWIFT MT103 Customer Credit Transfer Payment" .
+
+cbpa:MT202_Payment a owl:Class ;
+  rdfs:subClassOf cbpa:Payment ;
+  rdfs:label "SWIFT MT202 Financial Institution Transfer Payment" .
+
+cbpa:PACS008_Payment a owl:Class ;
+  rdfs:subClassOf cbpa:Payment ;
+  rdfs:label "ISO 20022 PACS.008 Customer Credit Transfer Payment" .
+
+cbpa:MT103_Payment_TXN001 a owl:Class ;
+  rdfs:subClassOf cbpa:MT103_Payment ;
+  rdfs:label "MT103 payment reference TXN-001" .
+
+cbpa:MT103_Payment_TXN002 a owl:Class ;
+  rdfs:subClassOf cbpa:MT103_Payment ;
+  rdfs:label "MT103 payment reference TXN-002" .
+
+cbpa:MT202_Payment_TXN003 a owl:Class ;
+  rdfs:subClassOf cbpa:MT202_Payment ;
+  rdfs:label "MT202 payment reference TXN-003" .
+
+cbpa:PACS008_Payment_TXN004 a owl:Class ;
+  rdfs:subClassOf cbpa:PACS008_Payment ;
+  rdfs:label "PACS.008 payment reference TXN-004" .
+
+#####################################################################
+# ANTI-PATTERN 2 — Event vs Task confusion.
+# Payment carries BOTH planning-time AND occurrence-time properties.
+# Note: gist:Event AND gist:Task on a single class triggers GIST-002.
+#####################################################################
+
+cbpa:instructedAmount a owl:DatatypeProperty ;
+  rdfs:domain cbpa:Payment ;
+  rdfs:range xsd:decimal ;
+  rdfs:label "instructed amount (planning-time, on Payment, as raw decimal)" .
+
+cbpa:plannedSettlementTime a owl:DatatypeProperty ;
+  rdfs:domain cbpa:Payment ;
+  rdfs:range xsd:dateTime ;
+  rdfs:label "planned settlement time (planning-time, on Payment)" .
+
+cbpa:plannedChannelLabel a owl:DatatypeProperty ;
+  rdfs:domain cbpa:Payment ;
+  rdfs:range xsd:string ;
+  rdfs:label "planned channel label (planning-time, free-text)" .
+
+cbpa:authoriser a owl:DatatypeProperty ;
+  rdfs:domain cbpa:Payment ;
+  rdfs:range xsd:string ;
+  rdfs:label "authoriser (planning-time, on Payment, as string)" .
+
+cbpa:instructionStatusLabel a owl:DatatypeProperty ;
+  rdfs:domain cbpa:Payment ;
+  rdfs:range xsd:string ;
+  rdfs:label "instruction status label (planning-time, free-text)" .
+
+cbpa:declaredPurposeLabel a owl:DatatypeProperty ;
+  rdfs:domain cbpa:Payment ;
+  rdfs:range xsd:string ;
+  rdfs:label "declared purpose (planning-time, free-text instead of category reference)" .
+
+cbpa:actualSettlementTime a owl:DatatypeProperty ;
+  rdfs:domain cbpa:Payment ;
+  rdfs:range xsd:dateTime ;
+  rdfs:label "actual settlement time (occurrence-time, on Payment)" .
+
+cbpa:actualPayerAccount a owl:ObjectProperty ;
+  rdfs:domain cbpa:Payment ;
+  rdfs:range cbpa:Account ;
+  rdfs:label "actual payer account (occurrence-time, on Payment)" .
+
+cbpa:actualPayeeAccount a owl:ObjectProperty ;
+  rdfs:domain cbpa:Payment ;
+  rdfs:range cbpa:Account ;
+  rdfs:label "actual payee account (occurrence-time, on Payment)" .
+
+cbpa:paymentReference a owl:DatatypeProperty ;
+  rdfs:domain cbpa:Payment ;
+  rdfs:range xsd:string ;
+  rdfs:label "payment reference (occurrence-time, on Payment)" .
+
+cbpa:settlementStatusLabel a owl:DatatypeProperty ;
+  rdfs:domain cbpa:Payment ;
+  rdfs:range xsd:string ;
+  rdfs:label "settlement status label (free-text, on Payment)" .
+
+cbpa:SettlementLeg a owl:Class ;
+  rdfs:subClassOf cbpa:Payment ;
+  rdfs:label "Settlement Leg" .
+
+cbpa:TestPayment a owl:Class ;
+  rdfs:subClassOf cbpa:Payment ;
+  rdfs:label "Test Payment" .
+
+#####################################################################
+# ANTI-PATTERN 3 — Parallel property invention.
+# Invents :containsAccount instead of using gist:isDirectPartOf
+# (or its conventional inverse hasDirectPart). Also invents :hasType
+# instead of gist:isCategorizedBy. Both trigger GIST-001.
+#####################################################################
+
+cbpa:Account a owl:Class ;
+  rdfs:subClassOf gist:Agreement ;
+  rdfs:label "Account" .
+
+cbpa:containsAccount a owl:ObjectProperty ;
+  rdfs:domain cbpa:Bank ;
+  rdfs:range cbpa:Account ;
+  rdfs:label "contains account (parallel to gist:isDirectPartOf — anti-pattern)" .
+
+cbpa:hasType a owl:ObjectProperty ;
+  rdfs:domain cbpa:Account ;
+  rdfs:range cbpa:AccountKind ;
+  rdfs:label "has type (parallel to gist:isCategorizedBy — anti-pattern)" .
+
+#####################################################################
+# Bank, Branch, Customer — Bank is correctly aligned to
+# gist:Organization, but the LLM has left Branch and Customer floating
+# at the root of the class tree with no upper-ontology alignment at
+# all. This is GIST-005 — orphan domain class.
+#
+# One of the most consequential anti-patterns when working with an
+# upper ontology: every domain class should ultimately subclass
+# something in the upper ontology. Classes that sit at the root of
+# the asserted hierarchy without an upper-ontology parent create
+# "new base classes" that fragment the taxonomy, defeat
+# cross-ontology alignment, and make downstream reasoning incomplete.
+# The methodology fix-and-resync demo addresses this in the second
+# cycle: Branch re-parented to gist:GeoRegion, Customer to
+# gist:Organization.
+#####################################################################
+
+cbpa:Bank a owl:Class ;
+  rdfs:subClassOf gist:Organization ;
+  rdfs:label "Bank" .
+
+cbpa:Branch a owl:Class ;                       # WRONG — left at root with no upper-ontology parent.
+  rdfs:label "Branch (orphan: no upper-ontology alignment)" .
+
+cbpa:Customer a owl:Class ;                     # WRONG — left at root with no upper-ontology parent.
+  rdfs:label "Customer (orphan: no upper-ontology alignment)" .
+
+cbpa:AccountKind a owl:Class ;
+  rdfs:subClassOf gist:Category ;
+  rdfs:label "Account Kind" .
+
+cbpa:heldAt a owl:ObjectProperty ;
+  rdfs:domain cbpa:Account ;
+  rdfs:range cbpa:Bank ;
+  rdfs:label "held at" .
+
+cbpa:locatedIn a owl:ObjectProperty ;
+  rdfs:domain cbpa:Bank ;
+  rdfs:range cbpa:Branch ;
+  rdfs:label "located in" .
+
+#####################################################################
+# MINOR FLAW — RiskAssessment misapplied as a Category subclass.
+# Triggers GIST-004 (Specification mis-typed as Category).
+#####################################################################
+
+cbpa:AMLAlertStatus a owl:Class ;
+  rdfs:subClassOf gist:Category ;       # WRONG — should be Specification.
+  rdfs:label "AML Alert Status (mis-typed as Category)" .
+
+cbpa:hasAMLAlertStatus a owl:ObjectProperty ;
+  rdfs:domain cbpa:Customer ;
+  rdfs:range cbpa:AMLAlertStatus ;
+  rdfs:label "has AML alert status" .
+
+cbpa:CustomerRiskScore a owl:Class ;
+  rdfs:subClassOf gist:Category ;       # WRONG — should be Specification.
+  rdfs:label "Customer Risk Score (mis-typed as Category)" .
+
+cbpa:hasCustomerRiskScore a owl:ObjectProperty ;
+  rdfs:domain cbpa:Customer ;
+  rdfs:range cbpa:CustomerRiskScore ;
+  rdfs:label "has customer risk score" .
+
+#####################################################################
+# MINOR FLAW — ComplianceState lacks any category linkage.
+#####################################################################
+
+cbpa:ComplianceState a owl:Class ;
+  rdfs:subClassOf gist:Specification ;
+  rdfs:label "Compliance State" .
+
+cbpa:complianceLabel a owl:DatatypeProperty ;
+  rdfs:domain cbpa:ComplianceState ;
+  rdfs:range xsd:string ;
+  rdfs:label "compliance label (free text — no Category linkage)" .
+
+cbpa:hasComplianceState a owl:ObjectProperty ;
+  rdfs:domain cbpa:Account ;
+  rdfs:range cbpa:ComplianceState ;
+  rdfs:label "has compliance state" .
+
+#####################################################################
+# KYC review — not flawed, included for completeness.
+#####################################################################
+
+cbpa:KYCReviewEvent a owl:Class ;
+  rdfs:subClassOf gist:Event ;
+  rdfs:label "KYC Review Event" .
+
+cbpa:reviewsCustomer a owl:ObjectProperty ;
+  rdfs:domain cbpa:KYCReviewEvent ;
+  rdfs:range cbpa:Customer ;
+  rdfs:label "reviews customer" .

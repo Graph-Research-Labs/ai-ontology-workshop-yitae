@@ -1,0 +1,449 @@
+# CBPA — Cross-Border Payments and AML Ontology (CLEAN reference)
+# Workshop: AI-Assisted Ontology Engineering — KGUG Seoul, 2 July 2026
+# Author: Dougal Watt, Graph Research Labs
+#
+# This is the CLEAN reference ontology used in the workshop demonstration.
+# Aligned to gist 14.1.0.
+#
+# Style conventions (team standard):
+#   - Constraints are expressed as OWL property restrictions on the
+#     bearing class, NOT as rdfs:domain / rdfs:range on the property.
+#   - Use Qualified Cardinality Restrictions (owl:onClass +
+#     owl:qualifiedCardinality / owl:minQualifiedCardinality /
+#     owl:maxQualifiedCardinality) for class-typed constraints.
+#   - Annotations use SKOS (skos:prefLabel, skos:definition).
+#   - IRIs use slash-style separation, never #.
+#
+# gist 14 alignment notes:
+#   - Account is modelled as a gist:Agreement (an account is the agreed
+#     arrangement between a bank and a customer to hold and transact
+#     funds). gist 14 has no domain-specific Account class; the
+#     Agreement alignment captures the legal/contractual essence.
+#   - Customer is modelled as gist:Organization. For a retail customer
+#     (a natural person) a parallel deployment would extend this to
+#     gist:Person. We keep one class for teaching simplicity.
+#   - Branch is a gist:GeoRegion — a defined physical location where
+#     the bank operates.
+#   - Currency, channel, purpose, and status discriminations are all
+#     gist:Category instances, NOT subclasses. This is the central gist
+#     pattern: type variation lives in instances of Category, not in
+#     the class tree.
+#   - Payment is gist:Event (the occurrence). PaymentInstruction is
+#     gist:Task (the plan). The two are linked via the instructionFor
+#     object property and its inverse implementsInstruction.
+#   - SuspiciousActivityReport is gist:Content (a document filed to the
+#     financial intelligence unit).
+#
+# Licence: CC-BY-SA-4.0.
+
+@prefix cbpa: <https://example.org/cbpa/> .
+@prefix gist: <https://w3id.org/semanticarts/ns/ontology/gist/> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix dct:  <http://purl.org/dc/terms/> .
+
+#####################################################################
+# Ontology header
+#####################################################################
+
+<https://example.org/cbpa> a owl:Ontology ;
+  owl:versionIRI <https://example.org/cbpa/0.5.0> ;
+  dct:title "Cross-Border Payments and AML Ontology (CBPA)" ;
+  dct:description "A small gist 14-aligned exemplar covering cross-border payments, the plan-versus-occurrence distinction between PaymentInstruction and Payment, account-holding relationships, KYC review events, suspicious activity reporting, and time-bounded risk and compliance state. Designed as a teaching exemplar for the Korean Graph User Group session on AI-assisted ontology engineering, 2 July 2026." ;
+  dct:creator "Dougal Watt" ;
+  dct:license <https://creativecommons.org/licenses/by-sa/4.0/> ;
+  owl:imports <https://w3id.org/semanticarts/ontology/gistCore> ;
+  rdfs:comment "This is the CLEAN reference. The flawed parallel file demonstrates the four LLM modelling anti-patterns plus the misattachment of planning-time properties to a conflated Payment class." .
+
+#####################################################################
+# Categories — gist 14 idiom: types are gist:Category instances and
+# things are categorised via gist:isCategorizedBy.
+#####################################################################
+
+cbpa:AccountKind a owl:Class ;
+  rdfs:subClassOf gist:Category ;
+  skos:prefLabel "Account Kind"@en ;
+  skos:definition "A Category whose members categorise specific Accounts by their banking arrangement."@en .
+
+cbpa:CurrentAccount   a cbpa:AccountKind ; skos:prefLabel "Current Account"@en .
+cbpa:SavingsAccount   a cbpa:AccountKind ; skos:prefLabel "Savings Account"@en .
+cbpa:NostroAccount    a cbpa:AccountKind ; skos:prefLabel "Nostro Account"@en .
+cbpa:VostroAccount    a cbpa:AccountKind ; skos:prefLabel "Vostro Account"@en .
+cbpa:EscrowAccount    a cbpa:AccountKind ; skos:prefLabel "Escrow Account"@en .
+
+cbpa:CurrencyType a owl:Class ;
+  rdfs:subClassOf gist:Category ;
+  skos:prefLabel "Currency Type"@en ;
+  skos:definition "A Category for the currencies in which Accounts are denominated and Payments are settled."@en .
+
+cbpa:KRW a cbpa:CurrencyType ; skos:prefLabel "Korean Won"@en .
+cbpa:USD a cbpa:CurrencyType ; skos:prefLabel "United States Dollar"@en .
+cbpa:EUR a cbpa:CurrencyType ; skos:prefLabel "Euro"@en .
+cbpa:JPY a cbpa:CurrencyType ; skos:prefLabel "Japanese Yen"@en .
+cbpa:GBP a cbpa:CurrencyType ; skos:prefLabel "Pound Sterling"@en .
+
+cbpa:ChannelType a owl:Class ;
+  rdfs:subClassOf gist:Category ;
+  skos:prefLabel "Channel Type"@en ;
+  skos:definition "A Category for the settlement channel through which a Payment is routed."@en .
+
+cbpa:SWIFT a cbpa:ChannelType ; skos:prefLabel "SWIFT messaging"@en .
+cbpa:RTGS  a cbpa:ChannelType ; skos:prefLabel "Real-Time Gross Settlement"@en .
+cbpa:CHIPS a cbpa:ChannelType ; skos:prefLabel "Clearing House Interbank Payments System"@en .
+cbpa:SEPA  a cbpa:ChannelType ; skos:prefLabel "Single Euro Payments Area"@en .
+cbpa:ACH   a cbpa:ChannelType ; skos:prefLabel "Automated Clearing House"@en .
+
+cbpa:PurposeType a owl:Class ;
+  rdfs:subClassOf gist:Category ;
+  skos:prefLabel "Purpose Type"@en ;
+  skos:definition "A Category enumerating the declared business purpose of a Payment."@en .
+
+cbpa:TradeSettlement   a cbpa:PurposeType ; skos:prefLabel "Trade settlement"@en .
+cbpa:FamilyRemittance  a cbpa:PurposeType ; skos:prefLabel "Family remittance"@en .
+cbpa:InvestmentPurpose a cbpa:PurposeType ; skos:prefLabel "Investment"@en .
+cbpa:SalaryPayment     a cbpa:PurposeType ; skos:prefLabel "Salary payment"@en .
+cbpa:LoanRepayment     a cbpa:PurposeType ; skos:prefLabel "Loan repayment"@en .
+
+cbpa:RiskRating a owl:Class ;
+  rdfs:subClassOf gist:Category ;
+  skos:prefLabel "Risk Rating"@en ;
+  skos:definition "A Category enumerating the AML risk levels assigned to a Customer or Account."@en .
+
+cbpa:LowRisk      a cbpa:RiskRating ; skos:prefLabel "Low Risk"@en .
+cbpa:MediumRisk   a cbpa:RiskRating ; skos:prefLabel "Medium Risk"@en .
+cbpa:HighRisk     a cbpa:RiskRating ; skos:prefLabel "High Risk"@en .
+cbpa:CriticalRisk a cbpa:RiskRating ; skos:prefLabel "Critical Risk"@en .
+
+cbpa:SettlementStatus a owl:Class ;
+  rdfs:subClassOf gist:Category ;
+  skos:prefLabel "Settlement Status"@en ;
+  skos:definition "A Category enumerating the outcome state of a Payment after attempted settlement."@en .
+
+cbpa:Pending      a cbpa:SettlementStatus ; skos:prefLabel "Pending"@en .
+cbpa:Cleared      a cbpa:SettlementStatus ; skos:prefLabel "Cleared"@en .
+cbpa:Rejected     a cbpa:SettlementStatus ; skos:prefLabel "Rejected"@en .
+cbpa:Returned     a cbpa:SettlementStatus ; skos:prefLabel "Returned"@en .
+cbpa:Investigated a cbpa:SettlementStatus ; skos:prefLabel "Under investigation"@en .
+
+cbpa:InstructionStatus a owl:Class ;
+  rdfs:subClassOf gist:Category ;
+  skos:prefLabel "Instruction Status"@en ;
+  skos:definition "A Category enumerating the lifecycle state of a PaymentInstruction."@en .
+
+cbpa:Drafted     a cbpa:InstructionStatus ; skos:prefLabel "Drafted"@en .
+cbpa:Authorised  a cbpa:InstructionStatus ; skos:prefLabel "Authorised"@en .
+cbpa:Released    a cbpa:InstructionStatus ; skos:prefLabel "Released"@en .
+cbpa:Cancelled   a cbpa:InstructionStatus ; skos:prefLabel "Cancelled"@en .
+cbpa:Superseded  a cbpa:InstructionStatus ; skos:prefLabel "Superseded"@en .
+
+cbpa:ComplianceLevel a owl:Class ;
+  rdfs:subClassOf gist:Category ;
+  skos:prefLabel "Compliance Level"@en ;
+  skos:definition "A Category enumerating the AML/KYC compliance level of an Account at a point in time."@en .
+
+cbpa:FullyCompliant    a cbpa:ComplianceLevel ; skos:prefLabel "Fully compliant"@en .
+cbpa:CompliantWithGaps a cbpa:ComplianceLevel ; skos:prefLabel "Compliant with gaps"@en .
+cbpa:NonCompliant      a cbpa:ComplianceLevel ; skos:prefLabel "Non-compliant"@en .
+
+#####################################################################
+# Domain classes — extending gist 14's upper-level distinctions.
+#####################################################################
+
+cbpa:Account a owl:Class ;
+  rdfs:subClassOf gist:Agreement ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty gist:isCategorizedBy ;
+    owl:onClass cbpa:AccountKind ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty cbpa:heldBy ;
+    owl:onClass cbpa:Customer ;
+    owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty cbpa:heldAt ;
+    owl:onClass cbpa:Bank ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty cbpa:denominatedIn ;
+    owl:onClass cbpa:CurrencyType ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty cbpa:hasComplianceState ;
+    owl:onClass cbpa:ComplianceState ;
+    owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  skos:prefLabel "Account"@en ;
+  skos:definition "An Agreement between a Bank and one or more Customers to hold funds and transact on the Customer's behalf. The Account's banking arrangement is captured through gist:isCategorizedBy pointing to an AccountKind instance, not through subclassing."@en .
+
+cbpa:Bank a owl:Class ;
+  rdfs:subClassOf gist:Organization ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty cbpa:holdsAccount ;
+    owl:onClass cbpa:Account ;
+    owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  skos:prefLabel "Bank"@en ;
+  skos:definition "An Organization licensed to provide banking services. Holds Accounts on behalf of Customers, executes Payments, and operates Branches."@en .
+
+cbpa:CorrespondentBank a owl:Class ;
+  rdfs:subClassOf cbpa:Bank ;
+  skos:prefLabel "Correspondent Bank"@en ;
+  skos:definition "A Bank that holds a Nostro or Vostro account on behalf of another Bank to facilitate cross-border settlement. The correspondent relationship is itself an Agreement."@en .
+
+cbpa:Customer a owl:Class ;
+  rdfs:subClassOf gist:Organization ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty cbpa:holdsAccount ;
+    owl:onClass cbpa:Account ;
+    owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty cbpa:hasRiskAssessment ;
+    owl:onClass cbpa:RiskAssessment ;
+    owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  skos:prefLabel "Customer"@en ;
+  skos:definition "An Organization (treating a corporate customer as a legal entity, or a natural person as a one-person legal entity) that holds one or more Accounts at a Bank. For a strictly retail deployment, parallel deployment of a RetailCustomer class extending gist:Person is straightforward."@en .
+
+cbpa:Branch a owl:Class ;
+  rdfs:subClassOf gist:GeoRegion ;
+  skos:prefLabel "Branch"@en ;
+  skos:definition "A GeoRegion at which a Bank operates a physical service location. A retail branch is a defined geographic area governed by a Bank; gist:GeoRegion (a geographical region with defined or contested boundaries) is the appropriate gist 14 alignment."@en .
+
+#####################################################################
+# Specifications — risk, balance, compliance, all time-bounded.
+#####################################################################
+
+cbpa:RiskAssessment a owl:Class ;
+  rdfs:subClassOf gist:Specification ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty gist:isCategorizedBy ;
+    owl:onClass cbpa:RiskRating ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty gist:occursIn ;
+    owl:onClass gist:TimeInterval ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  skos:prefLabel "Risk Assessment"@en ;
+  skos:definition "A Specification describing the AML risk rating attributed to a Customer or Account at a point in time. Always carries a RiskRating (via gist:isCategorizedBy) and a temporal extent (via gist:occursIn)."@en .
+
+cbpa:BalanceSnapshot a owl:Class ;
+  rdfs:subClassOf gist:Specification ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty gist:occursIn ;
+    owl:onClass gist:TimeInterval ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  skos:prefLabel "Balance Snapshot"@en ;
+  skos:definition "A Specification describing the balance held in an Account at a moment in time. Always carries a magnitude (the balance amount) and a temporal extent."@en .
+
+cbpa:ComplianceState a owl:Class ;
+  rdfs:subClassOf gist:Specification ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty gist:isCategorizedBy ;
+    owl:onClass cbpa:ComplianceLevel ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty gist:occursIn ;
+    owl:onClass gist:TimeInterval ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  skos:prefLabel "Compliance State"@en ;
+  skos:definition "A Specification describing an Account's AML/KYC compliance state at a moment in time. Always carries a ComplianceLevel (via gist:isCategorizedBy) and a temporal extent (via gist:occursIn)."@en .
+
+#####################################################################
+# Events and Tasks — gist's distinction between plan and occurrence.
+#####################################################################
+
+cbpa:Payment a owl:Class ;
+  rdfs:subClassOf gist:Event ;
+
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty cbpa:payer ;
+    owl:onClass cbpa:Account ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty cbpa:payee ;
+    owl:onClass cbpa:Account ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty gist:occursIn ;
+    owl:onClass gist:TimeInterval ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty cbpa:viaChannel ;
+    owl:onClass cbpa:ChannelType ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty cbpa:settlementStatus ;
+    owl:onClass cbpa:SettlementStatus ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty cbpa:implementsInstruction ;
+    owl:onClass cbpa:PaymentInstruction ;
+    owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty cbpa:paymentReference ;
+    owl:maxCardinality "1"^^xsd:nonNegativeInteger ] ;
+
+  skos:prefLabel "Payment"@en ;
+  skos:definition "An Event in which funds are transferred from a payer Account to a payee Account via a specified Channel. A Payment is the OCCURRENCE; its plan is captured separately as a PaymentInstruction (a Task)."@en .
+
+cbpa:PaymentInstruction a owl:Class ;
+  rdfs:subClassOf gist:Task ;
+
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty cbpa:instructionFor ;
+    owl:onClass cbpa:Payment ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty cbpa:instructsAmount ;
+    owl:onClass gist:Magnitude ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty cbpa:requestedSettlementWindow ;
+    owl:onClass gist:TimeInterval ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty cbpa:requestedChannel ;
+    owl:onClass cbpa:ChannelType ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty cbpa:authorisedBy ;
+    owl:cardinality "1"^^xsd:nonNegativeInteger ] ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty cbpa:instructionStatus ;
+    owl:onClass cbpa:InstructionStatus ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty cbpa:declaredPurpose ;
+    owl:onClass cbpa:PurposeType ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+
+  skos:prefLabel "Payment Instruction"@en ;
+  skos:definition "A Task specifying the requested amount, channel, declared purpose, settlement window, and authorising party for a Payment. Distinct from the Payment itself: the instruction exists before the occurrence, may exist without the occurrence (cancelled, superseded), and may be revised independently."@en .
+
+cbpa:SettlementLeg a owl:Class ;
+  rdfs:subClassOf cbpa:Payment ;
+  skos:prefLabel "Settlement Leg"@en ;
+  skos:definition "A single leg of a cross-border Payment passing through one Correspondent Bank. A Payment between accounts in different jurisdictions may consist of multiple SettlementLegs."@en .
+
+cbpa:TestPayment a owl:Class ;
+  rdfs:subClassOf cbpa:Payment ;
+  skos:prefLabel "Test Payment"@en ;
+  skos:definition "A Payment executed for the purpose of verifying connectivity, routing, or compliance configuration, rather than settling a real commercial obligation."@en .
+
+cbpa:KYCReviewEvent a owl:Class ;
+  rdfs:subClassOf gist:Event ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty cbpa:reviewsCustomer ;
+    owl:onClass cbpa:Customer ;
+    owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty gist:occursIn ;
+    owl:onClass gist:TimeInterval ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  skos:prefLabel "KYC Review Event"@en ;
+  skos:definition "An Event in which a Customer's KYC documentation, beneficial-ownership records, and risk profile are reviewed and re-rated by a compliance officer. Affects the RiskAssessment of the Customer."@en .
+
+cbpa:SuspiciousActivityReport a owl:Class ;
+  rdfs:subClassOf gist:Content ;
+  rdfs:subClassOf [ a owl:Restriction ;
+    owl:onProperty cbpa:reports ;
+    owl:onClass cbpa:Payment ;
+    owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ] ;
+  skos:prefLabel "Suspicious Activity Report"@en ;
+  skos:definition "A Content (filed document) submitted to the financial intelligence unit recording a Payment or pattern of Payments deemed suspicious. Carries provenance — filer, time, regulatory authority — by virtue of its gist:Content alignment."@en .
+
+#####################################################################
+# Object properties — pure declarations (no rdfs:domain or rdfs:range).
+# All cardinality and class constraints live on the bearing classes.
+#####################################################################
+
+cbpa:holdsAccount a owl:ObjectProperty ;
+  skos:prefLabel "holds account"@en ;
+  skos:definition "Relates a Customer (or a Bank, in the case of correspondent banking) to an Account it holds."@en .
+
+cbpa:heldBy a owl:ObjectProperty ;
+  owl:inverseOf cbpa:holdsAccount ;
+  skos:prefLabel "held by"@en ;
+  skos:definition "Relates an Account to the Customer holding it. Inverse of holdsAccount."@en .
+
+cbpa:heldAt a owl:ObjectProperty ;
+  skos:prefLabel "held at"@en ;
+  skos:definition "Relates an Account to the Bank at which it is held."@en .
+
+cbpa:denominatedIn a owl:ObjectProperty ;
+  skos:prefLabel "denominated in"@en ;
+  skos:definition "Relates an Account (or Payment) to the CurrencyType in which it is denominated."@en .
+
+cbpa:hasRiskAssessment a owl:ObjectProperty ;
+  skos:prefLabel "has risk assessment"@en ;
+  skos:definition "Relates a Customer (or Account) to its current RiskAssessment."@en .
+
+cbpa:hasComplianceState a owl:ObjectProperty ;
+  skos:prefLabel "has compliance state"@en ;
+  skos:definition "Relates an Account to its current ComplianceState."@en .
+
+cbpa:payer a owl:ObjectProperty ;
+  skos:prefLabel "payer"@en ;
+  skos:definition "Relates a Payment to the originating Account."@en .
+
+cbpa:payee a owl:ObjectProperty ;
+  skos:prefLabel "payee"@en ;
+  skos:definition "Relates a Payment to the receiving Account."@en .
+
+cbpa:viaChannel a owl:ObjectProperty ;
+  skos:prefLabel "via channel"@en ;
+  skos:definition "Relates a Payment to the ChannelType through which it was settled."@en .
+
+cbpa:settlementStatus a owl:ObjectProperty ;
+  skos:prefLabel "settlement status"@en ;
+  skos:definition "Relates a Payment to its current SettlementStatus."@en .
+
+cbpa:instructionFor a owl:ObjectProperty ;
+  skos:prefLabel "instruction for"@en ;
+  skos:definition "Relates a PaymentInstruction to the Payment it plans."@en .
+
+cbpa:implementsInstruction a owl:ObjectProperty ;
+  owl:inverseOf cbpa:instructionFor ;
+  skos:prefLabel "implements instruction"@en ;
+  skos:definition "Relates a Payment (the occurrence) to the PaymentInstruction it implements. Inverse of instructionFor."@en .
+
+cbpa:instructsAmount a owl:ObjectProperty ;
+  skos:prefLabel "instructs amount"@en ;
+  skos:definition "Relates a PaymentInstruction to the requested gist:Magnitude (numeric value plus currency unit) for the planned Payment."@en .
+
+cbpa:requestedSettlementWindow a owl:ObjectProperty ;
+  skos:prefLabel "requested settlement window"@en ;
+  skos:definition "Relates a PaymentInstruction to the requested TimeInterval for settlement. Distinct from the Payment's actual gist:occursIn."@en .
+
+cbpa:requestedChannel a owl:ObjectProperty ;
+  skos:prefLabel "requested channel"@en ;
+  skos:definition "Relates a PaymentInstruction to the ChannelType requested by the instructing party. May differ from the Payment's actual viaChannel if the bank routes via a fallback."@en .
+
+cbpa:declaredPurpose a owl:ObjectProperty ;
+  skos:prefLabel "declared purpose"@en ;
+  skos:definition "Relates a PaymentInstruction to the PurposeType declared by the instructing customer. Used in AML purpose-of-payment screening."@en .
+
+cbpa:authorisedBy a owl:ObjectProperty ;
+  skos:prefLabel "authorised by"@en ;
+  skos:definition "Relates a PaymentInstruction to the Customer (or authorised signatory) authorising the instruction."@en .
+
+cbpa:instructionStatus a owl:ObjectProperty ;
+  skos:prefLabel "instruction status"@en ;
+  skos:definition "Relates a PaymentInstruction to an InstructionStatus category instance."@en .
+
+cbpa:reviewsCustomer a owl:ObjectProperty ;
+  skos:prefLabel "reviews customer"@en ;
+  skos:definition "Relates a KYCReviewEvent to the Customer being reviewed."@en .
+
+cbpa:reports a owl:ObjectProperty ;
+  skos:prefLabel "reports"@en ;
+  skos:definition "Relates a SuspiciousActivityReport to the Payment (or Payments) it reports."@en .
+
+#####################################################################
+# Datatype properties
+#####################################################################
+
+cbpa:paymentReference a owl:DatatypeProperty ;
+  rdfs:range xsd:string ;
+  skos:prefLabel "payment reference"@en ;
+  skos:definition "An operational reference (UETR, end-to-end identifier) used to trace the Payment across systems. Note: rdfs:range is acceptable for datatype properties because the surprising-inference concern with rdfs:range applies to object properties / class-typed restrictions, not XSD datatypes."@en .

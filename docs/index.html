@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GRL Workshop Linter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .hide { display: none !important; }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="page-header">
+      <div class="brand">
+        <img class="brand-logo" src="lib/GRLlogo.svg" alt="Graph Research Labs" />
+        <span class="brand-divider"></span>
+        <span class="brand-product">Workshop Linter</span>
+      </div>
+      <span class="tagpill">
+        <span class="dot"></span>
+        v0.2 · 7 rules
+      </span>
+    </div>
+
+    <section class="hero">
+      <h1>Lint your ontology in <span class="accent">seven rules</span>.</h1>
+      <p>
+        Seven pitfall checks ported from GRL OntOLinter, run entirely in your browser.
+        Drop a Turtle file, see the findings. The methodology continues in the
+        workshop handout.
+      </p>
+      <div class="meta">
+        <span class="chip">No install</span>
+        <span class="chip">No upload — runs in-browser</span>
+        <span class="chip">Works offline once loaded</span>
+        <span class="chip">gist 14 aware</span>
+      </div>
+    </section>
+
+    <!-- INPUT CARD -->
+    <section class="card" id="input-card">
+      <h2 class="card-h">Drop your ontology</h2>
+      <p class="card-sub">Turtle (.ttl) recommended. Anything N3.js can parse will work.</p>
+
+      <div class="dropzone" id="dropzone">
+        <div class="icon">↓</div>
+        <p class="title">Drop a .ttl file here</p>
+        <small>or click to browse</small>
+        <div class="types">
+          <span>.ttl</span><span>.n3</span><span>.nt</span>
+        </div>
+      </div>
+      <input type="file" id="file-input" accept=".ttl,.n3,.nt,.rdf,.owl" style="display:none">
+
+      <div class="dropzone-or">— or paste Turtle —</div>
+      <textarea class="paste-area" id="paste-area" placeholder="@prefix : <http://example.org/> .&#10;:Payment a owl:Class ."></textarea>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="scan-btn" disabled>Scan</button>
+      </div>
+    </section>
+
+    <!-- SCAN STATE -->
+    <section class="card hide" id="scan-card">
+      <div class="scan-state">
+        <div class="scan-engine">⚙</div>
+        <h3>Running seven rules…</h3>
+        <p>Parsing triples, then GIST-001 through GIST-008 plus STRUCT-002.</p>
+      </div>
+    </section>
+
+    <!-- RESULT CARD -->
+    <section class="card hide" id="result-card">
+      <div class="summary" id="summary"></div>
+      <div class="scan-meta" id="scan-meta"></div>
+      <div class="findings" id="findings"></div>
+      <div class="actions" style="margin-top:24px">
+        <button class="btn btn-ghost" id="reset-btn">Scan another</button>
+      </div>
+    </section>
+
+    <!-- UPGRADE CALLOUT -->
+    <aside class="upgrade">
+      <div>
+        <div class="lbl">Production-grade ontology linting</div>
+        <h4>This is seven rules. GRL OntOLinter has thirty-plus.</h4>
+        <p>OWL profile compliance, SKOS coverage, custom rules, SARIF output, CI integration. Get in touch.</p>
+      </div>
+      <div class="right">
+        <a class="btn btn-primary" href="mailto:dougal.watt@graphresearchlabs.com?subject=OntOLinter%20enquiry">Talk to GRL</a>
+      </div>
+    </aside>
+
+    <footer class="foot">
+      <div class="l">
+        <a href="methodology.html">Methodology</a>
+        <a href="prompts.html">Prompt library</a>
+        <a href="examples.html">CBPA sample</a>
+        <a href="https://www.graphresearchlabs.com">graphresearchlabs.com</a>
+      </div>
+      <div>© Graph Research Labs · Workshop edition · KGUG Seoul 2026</div>
+    </footer>
+  </main>
+
+  <script src="lib/n3.min.js"></script>
+  <script src="rules/_common.js"></script>
+  <script src="rules/gist-001-parallel-property.js"></script>
+  <script src="rules/gist-002-plan-occurrence-collapse.js"></script>
+  <script src="rules/gist-003-instance-as-subclass.js"></script>
+  <script src="rules/gist-004-spec-mistyped-as-category.js"></script>
+  <script src="rules/gist-005-orphan-class.js"></script>
+  <script src="rules/gist-008-type-as-subclass.js"></script>
+  <script src="rules/struct-002-missing-annotation.js"></script>
+  <script src="lint.js"></script>
+</body>
+</html>

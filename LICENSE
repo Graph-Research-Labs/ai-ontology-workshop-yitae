@@ -1,0 +1,33 @@
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+   Copyright 2026 Graph Research Labs
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+   ---
+
+   This repository ports rule logic from the proprietary GRL OntOLinter
+   (https://www.graphresearchlabs.com/ontolinter), released here under
+   Apache 2.0 with permission, deliberately limited to six rules so
+   the workshop linter remains a teaching tool rather than a competing
+   product. The full OntOLinter rule library remains proprietary.
+
+   The Cross-Border Payments and AML Ontology (CBPA) example files
+   in examples/cbpa/ are released under CC-BY-SA-4.0 (matching the
+   gist licence) — they are a teaching exemplar designed for the
+   workshop, not a production ontology.
+
+   N3.js (docs/lib/n3.min.js) is included under its own MIT licence;
+   see https://github.com/rdfjs/N3.js for the source.

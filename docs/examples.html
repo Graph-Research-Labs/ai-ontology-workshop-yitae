@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CBPA sample · GRL Workshop Linter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="page">
+    <div class="page-header">
+      <a class="brand" href="index.html" style="text-decoration:none">
+        <img class="brand-logo" src="lib/GRLlogo.svg" alt="Graph Research Labs" />
+        <span class="brand-divider"></span>
+        <span class="brand-product">Workshop Linter</span>
+      </a>
+      <span class="tagpill"><span class="dot"></span>CBPA · 5 files</span>
+    </div>
+
+    <section class="hero">
+      <h1>The <span class="accent">CBPA</span> sample.</h1>
+      <p>The Cross-Border Payments and AML Ontology — a small gist 14-aligned exemplar covering account-holding, AML risk and compliance state, KYC review, and the plan-versus-occurrence distinction between PaymentInstruction and Payment. Used as the workshop's demonstration ontology.</p>
+      <div class="meta">
+        <span class="chip">gist 14 aligned</span>
+        <span class="chip">~24 classes</span>
+        <span class="chip">CC-BY-SA-4.0</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="card-h">The five files</h2>
+      <p class="card-sub">Download or view each file. Drop the flawed version onto the linter's home page to see all seven rules fire.</p>
+
+      <div class="file-list">
+        <div class="file-row">
+          <div class="ic">TTL</div>
+          <div class="meta">
+            <div class="name">bank-clean.ttl</div>
+            <div class="desc">Clean reference ontology — what the demo ends up at after applying the methodology. Twenty-four domain classes extending gist 14 by IRI; full SKOS annotations; OWL property restrictions throughout; Account aligned to gist:Agreement, Payment to gist:Event, PaymentInstruction to gist:Task.</div>
+          </div>
+          <div class="actions">
+            <a class="file-btn" href="examples/cbpa/bank-clean.ttl" target="_blank">View</a>
+            <a class="file-btn primary" href="examples/cbpa/bank-clean.ttl" download>Download</a>
+          </div>
+        </div>
+
+        <div class="file-row">
+          <div class="ic">TTL</div>
+          <div class="meta">
+            <div class="name">bank-flawed.ttl</div>
+            <div class="desc">The deliberately flawed demo version. Four primary anti-patterns — deep hierarchy explosion via MT103_Payment / MT202_Payment / PACS008_Payment subclasses, plan/occurrence collapse on Payment, parallel property invention (hasType, containsAccount), and orphan domain classes (Branch, Customer) — plus mis-typed Specifications and minor hygiene flaws. Drop this on the linter for 52 findings across all seven rules.</div>
+          </div>
+          <div class="actions">
+            <a class="file-btn" href="examples/cbpa/bank-flawed.ttl" target="_blank">View</a>
+            <a class="file-btn primary" href="examples/cbpa/bank-flawed.ttl" download>Download</a>
+          </div>
+        </div>
+
+        <div class="file-row">
+          <div class="ic">TTL</div>
+          <div class="meta">
+            <div class="name">cbpa-shacl-clean.ttl</div>
+            <div class="desc">SHACL shapes for the clean ontology. Enforces the structural constraints implied by the competency questions, including disjointness on Payment / PaymentInstruction to keep occurrence-time properties (payer, payee, viaChannel, settlementStatus) and planning-time properties (instructsAmount, requestedChannel, declaredPurpose, authorisedBy) on the right classes.</div>
+          </div>
+          <div class="actions">
+            <a class="file-btn" href="examples/cbpa/cbpa-shacl-clean.ttl" target="_blank">View</a>
+            <a class="file-btn primary" href="examples/cbpa/cbpa-shacl-clean.ttl" download>Download</a>
+          </div>
+        </div>
+
+        <div class="file-row">
+          <div class="ic">TTL</div>
+          <div class="meta">
+            <div class="name">cbpa-instances-sample.ttl</div>
+            <div class="desc">Synthetic instance data. Four banks (including two correspondent banks), three branches, six Korean and international customers across five risk ratings, eight accounts spanning KRW/USD/JPY/EUR, eight payments routed via SWIFT/RTGS/CHIPS, nine payment instructions, three KYC reviews, and two suspicious activity reports. Designed so every CQ has both a yes-case and a no-case. Validates clean against the SHACL shapes.</div>
+          </div>
+          <div class="actions">
+            <a class="file-btn" href="examples/cbpa/cbpa-instances-sample.ttl" target="_blank">View</a>
+            <a class="file-btn primary" href="examples/cbpa/cbpa-instances-sample.ttl" download>Download</a>
+          </div>
+        </div>
+
+        <div class="file-row">
+          <div class="ic">TXT</div>
+          <div class="meta">
+            <div class="name">cbpa-cqs.txt</div>
+            <div class="desc">Twelve worked competency questions for CBPA. Each has a use case (AML alert triage, compliance dashboard, settlement reconciliation, KYC follow-up), the ontology elements it exercises, and a SPARQL skeleton against the clean ontology. CQ7 is the marquee plan/occurrence query — "which PaymentInstructions were authorised but never resulted in a Cleared Payment".</div>
+          </div>
+          <div class="actions">
+            <a class="file-btn" href="examples/cbpa/cbpa-cqs.txt" target="_blank">View</a>
+            <a class="file-btn primary" href="examples/cbpa/cbpa-cqs.txt" download>Download</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="upgrade">
+      <div>
+        <div class="lbl">Try the linter</div>
+        <h4>Drop bank-flawed.ttl on the linter's home page.</h4>
+        <p>You should see 52 findings across the seven rules. Then try bank-clean.ttl — zero findings.</p>
+      </div>
+      <div class="right">
+        <a class="btn btn-primary" href="index.html">Open linter</a>
+      </div>
+    </aside>
+
+    <footer class="foot">
+      <div class="l">
+        <a href="index.html">Linter</a>
+        <a href="methodology.html">Methodology</a>
+        <a href="prompts.html">Prompt library</a>
+        <a href="examples.html">CBPA sample</a>
+        <a href="https://www.graphresearchlabs.com">graphresearchlabs.com</a>
+      </div>
+      <div>© Graph Research Labs · Workshop edition · KGUG Seoul 2026</div>
+    </footer>
+  </main>
+</body>
+</html>

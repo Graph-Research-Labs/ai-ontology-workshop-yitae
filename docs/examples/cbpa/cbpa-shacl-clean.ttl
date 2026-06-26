@@ -1,0 +1,412 @@
+# CBPA — SHACL shapes for the CLEAN ontology
+# Workshop: AI-Assisted Ontology Engineering — KGUG Seoul 2026
+# Author: Dougal Watt, Graph Research Labs
+#
+# These shapes correspond to bank-clean.ttl (gist 14.1.0 aligned).
+# The two marquee shapes — PaymentShape and PaymentInstructionShape —
+# enforce the plan/occurrence disjointness that the workshop linter
+# demonstrates as anti-pattern GIST-002.
+
+@prefix cbpa: <https://example.org/cbpa/> .
+@prefix gist: <https://w3id.org/semanticarts/ns/ontology/gist/> .
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+#####################################################################
+# Account NodeShape
+#####################################################################
+
+cbpa:AccountShape a sh:NodeShape ;
+  sh:targetClass cbpa:Account ;
+
+  sh:property [
+    sh:path gist:isCategorizedBy ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class cbpa:AccountKind ;
+    sh:message "An Account must have exactly one AccountKind (Current, Savings, Nostro, Vostro, or Escrow)."@en ;
+  ] ;
+
+  sh:property [
+    sh:path cbpa:heldAt ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class cbpa:Bank ;
+    sh:message "An Account must be held at exactly one Bank."@en ;
+  ] ;
+
+  sh:property [
+    sh:path cbpa:heldBy ;
+    sh:minCount 1 ;
+    sh:class cbpa:Customer ;
+    sh:message "An Account must be held by at least one Customer."@en ;
+  ] ;
+
+  sh:property [
+    sh:path cbpa:denominatedIn ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class cbpa:CurrencyType ;
+    sh:message "An Account must be denominated in exactly one CurrencyType."@en ;
+  ] ;
+
+  sh:property [
+    sh:path cbpa:hasComplianceState ;
+    sh:minCount 1 ;
+    sh:class cbpa:ComplianceState ;
+    sh:message "An Account must have at least one ComplianceState (current or historical)."@en ;
+  ] .
+
+#####################################################################
+# Bank NodeShape
+#####################################################################
+
+cbpa:BankShape a sh:NodeShape ;
+  sh:targetClass cbpa:Bank ;
+
+  sh:property [
+    sh:path cbpa:holdsAccount ;
+    sh:minCount 1 ;
+    sh:class cbpa:Account ;
+    sh:message "A Bank must hold at least one Account."@en ;
+  ] .
+
+#####################################################################
+# Customer NodeShape
+#####################################################################
+
+cbpa:CustomerShape a sh:NodeShape ;
+  sh:targetClass cbpa:Customer ;
+
+  sh:property [
+    sh:path cbpa:holdsAccount ;
+    sh:minCount 1 ;
+    sh:class cbpa:Account ;
+    sh:message "A Customer must hold at least one Account."@en ;
+  ] ;
+
+  sh:property [
+    sh:path cbpa:hasRiskAssessment ;
+    sh:minCount 1 ;
+    sh:class cbpa:RiskAssessment ;
+    sh:message "A Customer must carry at least one RiskAssessment (current or historical)."@en ;
+  ] .
+
+#####################################################################
+# RiskAssessment NodeShape
+#####################################################################
+
+cbpa:RiskAssessmentShape a sh:NodeShape ;
+  sh:targetClass cbpa:RiskAssessment ;
+
+  sh:property [
+    sh:path gist:isCategorizedBy ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class cbpa:RiskRating ;
+    sh:message "A RiskAssessment must reference exactly one RiskRating category."@en ;
+  ] ;
+
+  sh:property [
+    sh:path gist:occursIn ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class gist:TimeInterval ;
+    sh:message "A RiskAssessment must have a temporal extent (gist:occursIn)."@en ;
+  ] .
+
+#####################################################################
+# ComplianceState NodeShape
+#####################################################################
+
+cbpa:ComplianceStateShape a sh:NodeShape ;
+  sh:targetClass cbpa:ComplianceState ;
+
+  sh:property [
+    sh:path gist:isCategorizedBy ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class cbpa:ComplianceLevel ;
+    sh:message "A ComplianceState must reference exactly one ComplianceLevel category."@en ;
+  ] ;
+
+  sh:property [
+    sh:path gist:occursIn ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class gist:TimeInterval ;
+    sh:message "A ComplianceState must have a temporal extent (gist:occursIn)."@en ;
+  ] .
+
+#####################################################################
+# BalanceSnapshot NodeShape
+#####################################################################
+
+cbpa:BalanceSnapshotShape a sh:NodeShape ;
+  sh:targetClass cbpa:BalanceSnapshot ;
+
+  sh:property [
+    sh:path gist:occursIn ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class gist:TimeInterval ;
+    sh:message "A BalanceSnapshot must have a temporal extent (gist:occursIn)."@en ;
+  ] .
+
+#####################################################################
+# Payment NodeShape — the OCCURRENCE.
+# Forbidden: any planning-time property (those live on PaymentInstruction).
+#####################################################################
+
+cbpa:PaymentShape a sh:NodeShape ;
+  sh:targetClass cbpa:Payment ;
+
+  sh:property [
+    sh:path cbpa:payer ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class cbpa:Account ;
+    sh:message "A Payment must have exactly one payer Account."@en ;
+  ] ;
+
+  sh:property [
+    sh:path cbpa:payee ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class cbpa:Account ;
+    sh:message "A Payment must have exactly one payee Account."@en ;
+  ] ;
+
+  sh:property [
+    sh:path gist:occursIn ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class gist:TimeInterval ;
+    sh:message "A Payment must have a temporal extent (gist:occursIn)."@en ;
+  ] ;
+
+  sh:property [
+    sh:path cbpa:viaChannel ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class cbpa:ChannelType ;
+    sh:message "A Payment must be routed via exactly one ChannelType."@en ;
+  ] ;
+
+  sh:property [
+    sh:path cbpa:settlementStatus ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class cbpa:SettlementStatus ;
+    sh:message "A Payment must carry exactly one SettlementStatus."@en ;
+  ] ;
+
+  sh:property [
+    sh:path cbpa:implementsInstruction ;
+    sh:maxCount 1 ;
+    sh:class cbpa:PaymentInstruction ;
+    sh:message "If present, a Payment implements at most one PaymentInstruction."@en ;
+  ] ;
+
+  sh:property [
+    sh:path cbpa:paymentReference ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:string ;
+    sh:message "If present, a Payment has at most one payment reference string (UETR or end-to-end identifier)."@en ;
+  ] ;
+
+  # Forbidden: planning-time properties on the occurrence.
+  sh:property [
+    sh:path cbpa:instructsAmount ;
+    sh:maxCount 0 ;
+    sh:message "Payment must NOT carry instructsAmount — that is a planning property and belongs on PaymentInstruction."@en ;
+  ] ;
+
+  sh:property [
+    sh:path cbpa:requestedSettlementWindow ;
+    sh:maxCount 0 ;
+    sh:message "Payment must NOT carry requestedSettlementWindow — use gist:occursIn for the actual settlement window."@en ;
+  ] ;
+
+  sh:property [
+    sh:path cbpa:requestedChannel ;
+    sh:maxCount 0 ;
+    sh:message "Payment must NOT carry requestedChannel — use viaChannel for the actual channel used."@en ;
+  ] ;
+
+  sh:property [
+    sh:path cbpa:declaredPurpose ;
+    sh:maxCount 0 ;
+    sh:message "Payment must NOT carry declaredPurpose — that is a planning property and belongs on PaymentInstruction."@en ;
+  ] ;
+
+  sh:property [
+    sh:path cbpa:authorisedBy ;
+    sh:maxCount 0 ;
+    sh:message "Payment must NOT carry authorisedBy — authorisation is a planning act and belongs on PaymentInstruction."@en ;
+  ] ;
+
+  sh:property [
+    sh:path cbpa:instructionStatus ;
+    sh:maxCount 0 ;
+    sh:message "Payment must NOT carry instructionStatus — that is a planning property."@en ;
+  ] .
+
+#####################################################################
+# PaymentInstruction NodeShape — the PLAN.
+# Forbidden: any occurrence-time property.
+#####################################################################
+
+cbpa:PaymentInstructionShape a sh:NodeShape ;
+  sh:targetClass cbpa:PaymentInstruction ;
+
+  sh:property [
+    sh:path cbpa:instructionFor ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class cbpa:Payment ;
+    sh:message "A PaymentInstruction must reference exactly one Payment it plans."@en ;
+  ] ;
+
+  sh:property [
+    sh:path cbpa:instructsAmount ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class gist:Magnitude ;
+    sh:message "A PaymentInstruction must specify exactly one requested Magnitude (numeric value with currency unit)."@en ;
+  ] ;
+
+  sh:property [
+    sh:path cbpa:requestedSettlementWindow ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class gist:TimeInterval ;
+    sh:message "A PaymentInstruction must specify exactly one requested settlement TimeInterval."@en ;
+  ] ;
+
+  sh:property [
+    sh:path cbpa:requestedChannel ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class cbpa:ChannelType ;
+    sh:message "A PaymentInstruction must request exactly one ChannelType."@en ;
+  ] ;
+
+  sh:property [
+    sh:path cbpa:declaredPurpose ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class cbpa:PurposeType ;
+    sh:message "A PaymentInstruction must declare exactly one PurposeType (used in AML purpose-of-payment screening)."@en ;
+  ] ;
+
+  sh:property [
+    sh:path cbpa:authorisedBy ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:or (
+      [ sh:class cbpa:Customer ]
+      [ sh:class gist:Person ]
+      [ sh:class gist:Organization ]
+    ) ;
+    sh:message "A PaymentInstruction must be authorised by exactly one Customer, Person, or Organization."@en ;
+  ] ;
+
+  sh:property [
+    sh:path cbpa:instructionStatus ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class cbpa:InstructionStatus ;
+    sh:message "A PaymentInstruction must have exactly one InstructionStatus (Drafted, Authorised, Released, Cancelled, or Superseded)."@en ;
+  ] ;
+
+  # Forbidden: occurrence-time properties on the plan.
+  sh:property [
+    sh:path cbpa:payer ;
+    sh:maxCount 0 ;
+    sh:message "PaymentInstruction must NOT carry payer — that is an occurrence property and belongs on Payment."@en ;
+  ] ;
+
+  sh:property [
+    sh:path cbpa:payee ;
+    sh:maxCount 0 ;
+    sh:message "PaymentInstruction must NOT carry payee — that is an occurrence property and belongs on Payment."@en ;
+  ] ;
+
+  sh:property [
+    sh:path cbpa:viaChannel ;
+    sh:maxCount 0 ;
+    sh:message "PaymentInstruction must NOT carry viaChannel — use requestedChannel for the planning side."@en ;
+  ] ;
+
+  sh:property [
+    sh:path cbpa:settlementStatus ;
+    sh:maxCount 0 ;
+    sh:message "PaymentInstruction must NOT carry settlementStatus — that is an occurrence property and belongs on Payment."@en ;
+  ] ;
+
+  sh:property [
+    sh:path gist:occursIn ;
+    sh:maxCount 0 ;
+    sh:message "PaymentInstruction must NOT carry gist:occursIn — use requestedSettlementWindow for the planned window. gist:occursIn is reserved for the actual Payment occurrence."@en ;
+  ] .
+
+#####################################################################
+# KYCReviewEvent NodeShape
+#####################################################################
+
+cbpa:KYCReviewEventShape a sh:NodeShape ;
+  sh:targetClass cbpa:KYCReviewEvent ;
+
+  sh:property [
+    sh:path cbpa:reviewsCustomer ;
+    sh:minCount 1 ;
+    sh:class cbpa:Customer ;
+    sh:message "A KYCReviewEvent must review at least one Customer."@en ;
+  ] ;
+
+  sh:property [
+    sh:path gist:occursIn ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class gist:TimeInterval ;
+    sh:message "A KYCReviewEvent must have a temporal extent (gist:occursIn)."@en ;
+  ] .
+
+#####################################################################
+# SuspiciousActivityReport NodeShape
+#####################################################################
+
+cbpa:SuspiciousActivityReportShape a sh:NodeShape ;
+  sh:targetClass cbpa:SuspiciousActivityReport ;
+
+  sh:property [
+    sh:path cbpa:reports ;
+    sh:minCount 1 ;
+    sh:class cbpa:Payment ;
+    sh:message "A SuspiciousActivityReport must report at least one Payment."@en ;
+  ] .
+
+#####################################################################
+# CQ-derived PropertyShapes
+# Constraints implied by competency questions that are not already
+# enforced by the NodeShapes above.
+#####################################################################
+
+# CQ5 — instructed Magnitude must be denominated in a known CurrencyType.
+cbpa:InstructedMagnitudeCurrencyShape a sh:NodeShape ;
+  sh:targetClass gist:Magnitude ;
+  sh:property [
+    sh:path cbpa:denominatedIn ;
+    sh:maxCount 1 ;
+    sh:class cbpa:CurrencyType ;
+    sh:message "If a Magnitude is used as an instructed amount, it should be denominated in a single CurrencyType."@en ;
+  ] .
+
+# CQ7 — discoverability: every authorised PaymentInstruction should
+# eventually point at a Payment via instructionFor; this is already
+# enforced as minCount 1 on instructionFor, so the structural support
+# for CQ7's NOT EXISTS pattern is in place.

@@ -1,0 +1,241 @@
+CBPA — Competency Questions
+Workshop: AI-Assisted Ontology Engineering — KGUG Seoul 2026
+Author: Dougal Watt, Graph Research Labs
+
+Twelve competency questions covering the canonical use cases of the
+Cross-Border Payments and AML Ontology. Each CQ has:
+  - the plain-language question
+  - the use case it serves
+  - the ontology elements it exercises
+  - a SPARQL skeleton against the CLEAN ontology
+
+The SPARQL skeletons are intentionally sketches; refine them when
+generating tests via Artefact 5 in the workshop handout.
+
+Prefixes:
+  PREFIX cbpa: <https://example.org/cbpa/>
+  PREFIX gist: <https://w3id.org/semanticarts/ns/ontology/gist/>
+  PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+  PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+  PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+  PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+
+================================================================
+CQ1 — Which Accounts are held at Bank K (a specified Bank)?
+----------------------------------------------------------------
+Use case: morning portfolio attribution, bank-level reconciliation.
+Elements: Account, Bank, heldAt.
+Skeleton:
+  SELECT ?account WHERE {
+    ?account a cbpa:Account ;
+             cbpa:heldAt ?bank .
+    ?bank skos:prefLabel "Bank K"@en .
+  }
+
+================================================================
+CQ2 — Which Customers are currently rated High Risk?
+----------------------------------------------------------------
+Use case: AML alert triage. Tests gist:Specification + Category.
+Elements: Customer, RiskAssessment, RiskRating (HighRisk),
+hasRiskAssessment, gist:isCategorizedBy.
+Skeleton:
+  SELECT ?customer WHERE {
+    ?customer a cbpa:Customer ;
+              cbpa:hasRiskAssessment ?ra .
+    ?ra gist:isCategorizedBy cbpa:HighRisk .
+  }
+
+================================================================
+CQ3 — For each Bank, how many of its Accounts are currently
+non-compliant?
+----------------------------------------------------------------
+Use case: compliance dashboard for the Chief Compliance Officer.
+Elements: Bank, Account, heldAt, ComplianceState, ComplianceLevel
+(NonCompliant), hasComplianceState, gist:isCategorizedBy.
+Skeleton:
+  SELECT ?bank (COUNT(?account) AS ?nonCompliantCount) WHERE {
+    ?account a cbpa:Account ;
+             cbpa:heldAt ?bank ;
+             cbpa:hasComplianceState ?cs .
+    ?cs gist:isCategorizedBy cbpa:NonCompliant .
+  } GROUP BY ?bank
+
+================================================================
+CQ4 — Which Payments were routed via SWIFT?
+----------------------------------------------------------------
+Use case: channel-driven settlement reporting.
+Elements: Payment, ChannelType (SWIFT), viaChannel.
+Skeleton:
+  SELECT ?payment WHERE {
+    ?payment a cbpa:Payment ;
+             cbpa:viaChannel cbpa:SWIFT .
+  }
+
+================================================================
+CQ5 — Which PaymentInstructions request a CurrencyType that no
+Account held by the authorising Customer is denominated in?
+----------------------------------------------------------------
+Use case: pre-settlement currency-mismatch detection (FX exposure,
+AML anomaly). Multi-hop; exposes property-direction errors.
+Elements: PaymentInstruction, instructsAmount, gist:Magnitude
+(with currency unit), denominatedIn, Account, holdsAccount,
+Customer, authorisedBy.
+Skeleton:
+  SELECT ?instruction ?missingCurrency WHERE {
+    ?instruction a cbpa:PaymentInstruction ;
+                 cbpa:authorisedBy ?customer ;
+                 cbpa:instructsAmount ?mag .
+    ?mag cbpa:denominatedIn ?missingCurrency .
+    FILTER NOT EXISTS {
+      ?customer cbpa:holdsAccount ?account .
+      ?account cbpa:denominatedIn ?missingCurrency .
+    }
+  }
+
+================================================================
+CQ6 — Which Payments to or from Account ACC-001 cleared in
+the last 30 days?
+----------------------------------------------------------------
+Use case: per-account transaction monitoring.
+Elements: Account, Payment, payer, payee, settlementStatus,
+SettlementStatus (Cleared), gist:occursIn, gist:TimeInterval.
+Skeleton:
+  SELECT ?payment WHERE {
+    ?payment a cbpa:Payment ;
+             cbpa:settlementStatus cbpa:Cleared ;
+             gist:occursIn ?ti .
+    ?ti gist:startDateTime ?start .
+    FILTER (?start >= "2026-05-25T00:00:00Z"^^xsd:dateTime)
+    { ?payment cbpa:payer cbpa:ACC-001 . }
+    UNION
+    { ?payment cbpa:payee cbpa:ACC-001 . }
+  }
+
+================================================================
+CQ7 — Which PaymentInstructions were authorised but never
+resulted in a Cleared Payment?
+----------------------------------------------------------------
+Use case: failed-settlement review, the marquee question that
+depends on the plan/occurrence distinction (gist:Task vs gist:Event).
+A Cleared SettlementStatus means money moved; any other status
+(Pending, Rejected, Returned, Investigated) means the authorised
+instruction never produced a real settlement.
+Elements: PaymentInstruction, instructionStatus, InstructionStatus
+(Authorised), instructionFor, Payment, settlementStatus, Cleared.
+Skeleton:
+  SELECT ?instruction WHERE {
+    ?instruction a cbpa:PaymentInstruction ;
+                 cbpa:instructionStatus cbpa:Authorised ;
+                 cbpa:instructionFor ?payment .
+    FILTER NOT EXISTS {
+      ?payment cbpa:settlementStatus cbpa:Cleared .
+    }
+  }
+
+================================================================
+CQ8 — Which Customers are currently rated High Risk and
+have an open SuspiciousActivityReport against any of their
+Payments?
+----------------------------------------------------------------
+Use case: AML escalation work-list. Combines classification with
+provenance content.
+Elements: Customer, RiskAssessment, HighRisk, hasRiskAssessment,
+holdsAccount, Account, Payment, payer, SuspiciousActivityReport,
+reports.
+Skeleton:
+  SELECT ?customer ?sar WHERE {
+    ?customer a cbpa:Customer ;
+              cbpa:hasRiskAssessment ?ra ;
+              cbpa:holdsAccount ?account .
+    ?ra gist:isCategorizedBy cbpa:HighRisk .
+    ?payment cbpa:payer ?account .
+    ?sar a cbpa:SuspiciousActivityReport ;
+         cbpa:reports ?payment .
+  }
+
+================================================================
+CQ9 — Which Customers underwent a KYCReviewEvent in the last
+quarter and are currently rated High or Critical Risk?
+----------------------------------------------------------------
+Use case: review-cycle follow-up by the compliance team.
+Elements: Customer, KYCReviewEvent, reviewsCustomer, gist:occursIn,
+RiskAssessment, RiskRating (HighRisk, CriticalRisk),
+hasRiskAssessment, gist:isCategorizedBy.
+Skeleton:
+  SELECT ?customer WHERE {
+    ?event a cbpa:KYCReviewEvent ;
+           cbpa:reviewsCustomer ?customer ;
+           gist:occursIn ?ti .
+    ?ti gist:startDateTime ?start .
+    FILTER (?start >= "2026-04-01T00:00:00Z"^^xsd:dateTime
+         && ?start <  "2026-07-01T00:00:00Z"^^xsd:dateTime)
+    ?customer cbpa:hasRiskAssessment ?ra .
+    ?ra gist:isCategorizedBy ?level .
+    FILTER (?level IN (cbpa:HighRisk, cbpa:CriticalRisk))
+  }
+
+================================================================
+CQ10 — How many Payments routed via SWIFT and denominated in
+USD settled during May 2026?
+----------------------------------------------------------------
+Use case: regulatory volume reporting, channel-currency analytics.
+Elements: Payment, viaChannel, SWIFT, denominatedIn, USD,
+gist:occursIn.
+Skeleton:
+  SELECT (COUNT(?payment) AS ?n) WHERE {
+    ?payment a cbpa:Payment ;
+             cbpa:viaChannel cbpa:SWIFT ;
+             cbpa:denominatedIn cbpa:USD ;
+             gist:occursIn ?ti .
+    ?ti gist:startDateTime ?start .
+    FILTER (?start >= "2026-05-01T00:00:00Z"^^xsd:dateTime
+         && ?start <  "2026-06-01T00:00:00Z"^^xsd:dateTime)
+  }
+
+================================================================
+CQ11 — Which Banks have more non-compliant Accounts than
+compliant Accounts?
+----------------------------------------------------------------
+Use case: bank-level compliance posture, escalation to regulator
+prep. Aggregation across two counts with HAVING.
+Elements: Bank, Account, heldAt, ComplianceState, ComplianceLevel
+(FullyCompliant vs NonCompliant), hasComplianceState.
+Skeleton (use subqueries to avoid the OPTIONAL cross-product trap):
+  SELECT ?bank ?nNon ?nComp WHERE {
+    {
+      SELECT ?bank (COUNT(?acc) AS ?nNon) WHERE {
+        ?acc cbpa:heldAt ?bank ;
+             cbpa:hasComplianceState ?cs .
+        ?cs gist:isCategorizedBy cbpa:NonCompliant .
+      } GROUP BY ?bank
+    }
+    OPTIONAL {
+      SELECT ?bank (COUNT(?acc2) AS ?nComp) WHERE {
+        ?acc2 cbpa:heldAt ?bank ;
+              cbpa:hasComplianceState ?cs2 .
+        ?cs2 gist:isCategorizedBy cbpa:FullyCompliant .
+      } GROUP BY ?bank
+    }
+    FILTER (?nNon > COALESCE(?nComp, 0))
+  }
+
+================================================================
+CQ12 — Which PurposeType categories appear on PaymentInstructions
+but have never been carried through to a settled Payment?
+----------------------------------------------------------------
+Use case: declared-vs-actual purpose anomaly (AML pattern: legal
+purpose declared in instruction, never matched by a real-world
+settlement). Fleet-level gap analysis.
+Elements: PaymentInstruction, declaredPurpose, PurposeType,
+instructionFor, Payment, settlementStatus, Cleared.
+Skeleton:
+  SELECT ?purpose WHERE {
+    ?inst a cbpa:PaymentInstruction ;
+          cbpa:declaredPurpose ?purpose .
+    FILTER NOT EXISTS {
+      ?inst2 a cbpa:PaymentInstruction ;
+             cbpa:declaredPurpose ?purpose ;
+             cbpa:instructionFor ?pay .
+      ?pay cbpa:settlementStatus cbpa:Cleared .
+    }
+  }
