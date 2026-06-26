@@ -25,7 +25,7 @@
     name: 'Plan/occurrence collapse',
     category: 'gist',
     severity: 'warning',
-    blurb: 'A class is asserted as a subclass of two gist classes the methodology treats as disjoint (e.g. Event and Task collapsed).',
+    blurb: 'A single class is asserted as a subclass of two gist classes that the methodology treats as distinct modelling roles — most often gist:Event (the actual occurrence) and gist:Task (the plan). These two are not formally disjoint in gist (gist:Task is in fact a subclass of gist:Event), so a reasoner will not flag it, but the dual-subclass pattern reliably indicates that the modeller has conflated the plan and the occurrence into one class. The fix is to split them: one class extending gist:Task for the plan, one extending gist:Event for the occurrence, linked by an object property.',
 
     check(store) {
       // Map each subject to the set of gist parent local names it has via rdfs:subClassOf

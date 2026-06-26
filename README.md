@@ -4,7 +4,7 @@ The takeaway materials from the **AI-Assisted Ontology Engineering** workshop at
 
 ## What's in here
 
-- **`docs/`** — the GRL Workshop Linter, a single-page web app that runs seven pitfall checks ported from [GRL OntOLinter](https://www.graphresearchlabs.com/ontolinter) directly in your browser. Hosted via GitHub Pages at `https://graphresearchlabs.github.io/ai-ontology-workshop-yitae/`.
+- **`docs/`** — the GRL Workshop Linter, a single-page web app that runs seven pitfall checks ported from [GRL OntOLinter](https://www.graphresearchlabs.com/ontolinter) directly in your browser. Hosted via GitHub Pages at `https://graph-research-labs.github.io/ai-ontology-workshop-yitae/`.
 - **`prompts/`** — the seven prompt artefacts from the workshop handout: competency-question generation, adversarial critique, SHACL generation, modeller dialogue, test data generation, the style-guide-as-system-prompt template, and the production readiness checklist.
 - **`examples/cbpa/`** — the Cross-Border Payments and AML Ontology used as the workshop's demonstration exemplar. Five files: clean reference (`bank-clean.ttl`), the deliberately flawed version (`bank-flawed.ttl`), the SHACL shapes for the clean ontology, sample instance data (validates clean against the shapes), and twelve worked competency questions.
 
@@ -19,7 +19,7 @@ You need:
 
 That's it. No Python, no terminal, no install steps.
 
-**Bookmark** `https://graphresearchlabs.github.io/ai-ontology-workshop-yitae/` and test it loads.
+**Bookmark** `https://graph-research-labs.github.io/ai-ontology-workshop-yitae/` and test it loads.
 
 ## Using the linter
 
@@ -30,7 +30,7 @@ The seven rules:
 | ID | Name | Source | What it catches |
 |---|---|---|---|
 | **GIST-001** | Parallel property invention | OntOLinter | A user-namespace property duplicates a well-known gist property (for example `containsAccount` instead of `gist:isDirectPartOf`, or `hasType` instead of `gist:isCategorizedBy`). |
-| **GIST-002** | Plan/occurrence collapse | OntOLinter | A class is asserted as `rdfs:subClassOf` of two gist classes the methodology treats as disjoint (for example a Payment as both `gist:Event` and `gist:Task`). |
+| **GIST-002** | Plan/occurrence collapse | OntOLinter | A single class is asserted as `rdfs:subClassOf` of two gist classes the methodology treats as distinct modelling roles — most often `gist:Event` (the actual occurrence) and `gist:Task` (the plan). The two are not formally disjoint in gist (`gist:Task` is a subclass of `gist:Event`), so a reasoner will not flag the dual-subclass — but the pattern reliably indicates plan and occurrence have been conflated into one class. Split them. |
 | **GIST-003** | Instance as subclass | OntOLinter | A class looks like an individual modelled as a class (for example `MT103_Payment_TXN001`). The fix is to model it as an individual with `gist:isCategorizedBy` linking to a `gist:Category` instance. |
 | **GIST-004** | Specification mis-typed as Category | OntOLinter | A class is `rdfs:subClassOf gist:Category` but its name or properties suggest a `gist:Specification` (for example `AMLAlertStatus` or `CustomerRiskScore`). |
 | **GIST-005** | Orphan domain class | Workshop | A domain class lacks an upper-ontology parent despite the ontology declaring an `owl:imports` (for example `Customer` or `Branch` floating at the root). |

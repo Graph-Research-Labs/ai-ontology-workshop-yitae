@@ -1,17 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GRL Workshop Linter</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
   <style>
-    .hide { display: none !important; }
+    .hide {
+      display: none !important;
+    }
   </style>
 </head>
+
 <body>
   <main class="page">
     <div class="page-header">
@@ -29,7 +35,7 @@
     <section class="hero">
       <h1>Lint your ontology in <span class="accent">seven rules</span>.</h1>
       <p>
-        Seven pitfall checks ported from GRL OntOLinter, run entirely in your browser.
+        Seven pitfall checks ported from GRL OntoLinter, run entirely in your browser.
         Drop a Turtle file, see the findings. The methodology continues in the
         workshop handout.
       </p>
@@ -57,7 +63,8 @@
       <input type="file" id="file-input" accept=".ttl,.n3,.nt,.rdf,.owl" style="display:none">
 
       <div class="dropzone-or">— or paste Turtle —</div>
-      <textarea class="paste-area" id="paste-area" placeholder="@prefix : <http://example.org/> .&#10;:Payment a owl:Class ."></textarea>
+      <textarea class="paste-area" id="paste-area"
+        placeholder="@prefix : <http://example.org/> .&#10;:Payment a owl:Class ."></textarea>
 
       <div class="actions">
         <button class="btn btn-primary" id="scan-btn" disabled>Scan</button>
@@ -87,11 +94,12 @@
     <aside class="upgrade">
       <div>
         <div class="lbl">Production-grade ontology linting</div>
-        <h4>This is seven rules. GRL OntOLinter has thirty-plus.</h4>
+        <h4>This is seven rules. GRL OntoLinter has thirty-plus.</h4>
         <p>OWL profile compliance, SKOS coverage, custom rules, SARIF output, CI integration. Get in touch.</p>
       </div>
       <div class="right">
-        <a class="btn btn-primary" href="mailto:dougal.watt@graphresearchlabs.com?subject=OntOLinter%20enquiry">Talk to GRL</a>
+        <a class="btn btn-primary" href="mailto:dougal.watt@graphresearchlabs.com?subject=OntoLinter%20enquiry">Talk to
+          GRL</a>
       </div>
     </aside>
 
@@ -117,4 +125,5 @@
   <script src="rules/struct-002-missing-annotation.js"></script>
   <script src="lint.js"></script>
 </body>
+
 </html>
