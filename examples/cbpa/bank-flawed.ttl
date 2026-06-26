@@ -245,14 +245,14 @@ cbpa:hasAMLAlertStatus a owl:ObjectProperty ;
   rdfs:range cbpa:AMLAlertStatus ;
   rdfs:label "has AML alert status" .
 
-cbpa:CustomerRiskScore a owl:Class ;
+cbpa:CustomerOnboardingStatus a owl:Class ;
   rdfs:subClassOf gist:Category ;       # WRONG — should be Specification.
-  rdfs:label "Customer Risk Score (mis-typed as Category)" .
+  rdfs:label "Customer Onboarding Status (mis-typed as Category)" .
 
-cbpa:hasCustomerRiskScore a owl:ObjectProperty ;
+cbpa:hasCustomerOnboardingStatus a owl:ObjectProperty ;
   rdfs:domain cbpa:Customer ;
-  rdfs:range cbpa:CustomerRiskScore ;
-  rdfs:label "has customer risk score" .
+  rdfs:range cbpa:CustomerOnboardingStatus ;
+  rdfs:label "has customer onboarding status" .
 
 #####################################################################
 # MINOR FLAW — ComplianceState lacks any category linkage.

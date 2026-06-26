@@ -48,7 +48,7 @@
     name: 'Specification mis-typed as Category',
     category: 'gist',
     severity: 'warning',
-    blurb: 'A class is rdfs:subClassOf gist:Category but its name or properties suggest it should be a gist:Specification.',
+    blurb: 'A class is rdfs:subClassOf gist:Category and its local name (or its properties) match a pattern that typically denotes a time-bounded fact rather than a type enumeration — words like "Status", "State", "Level", "Score", "Capability", "Readiness", "Configuration", "Condition". This is a heuristic: the rule generates a hypothesis to investigate, not a verdict. Sometimes the right fix is to re-type the class as gist:Specification; sometimes the right fix is gist:Magnitude (for a value), or a data property, or no class at all. Sometimes the original Category typing is correct and the name is misleading. The rule prompts the question — you decide.',
 
     check(store) {
       // Find direct subclasses of gist:Category
